@@ -16,3 +16,5 @@
 *.raw
 data/
 __pycache__/
+scripts/fonts/
+scripts/__pycache__/

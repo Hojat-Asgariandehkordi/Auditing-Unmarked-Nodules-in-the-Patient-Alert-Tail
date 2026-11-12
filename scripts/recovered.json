@@ -1,0 +1,532 @@
+{
+ "_note": "Recovered from vector geometry of figures/orig/*.pdf by scripts/recover_vector.py. Confirm against the analysis ledger before submission.",
+ "acquisition_draws": {
+  "what": "distinct training omissions (of 92) reached in each of six matched audit draws",
+  "source": "Fig. 1A small points (orig acquisition.pdf)",
+  "values": {
+   "paired": {
+    "half": [
+     76,
+     78,
+     79,
+     79,
+     81,
+     82
+    ],
+    "base": [
+     84,
+     85,
+     87,
+     87,
+     87,
+     87
+    ]
+   },
+   "image": {
+    "half": [
+     62,
+     64,
+     64,
+     67,
+     67,
+     69
+    ],
+    "base": [
+     79,
+     80,
+     81,
+     81,
+     82,
+     82
+    ]
+   },
+   "mark": {
+    "half": [
+     10,
+     12,
+     13,
+     15,
+     17,
+     17
+    ],
+    "base": [
+     22,
+     23,
+     23,
+     25,
+     25,
+     27
+    ]
+   },
+   "uniform": {
+    "half": [
+     0,
+     0,
+     1,
+     1,
+     2,
+     2
+    ],
+    "base": [
+     0,
+     1,
+     3,
+     3,
+     3,
+     4
+    ]
+   }
+  }
+ },
+ "cutoff_pool": {
+  "what": "selected-anchor maxima of C/D-negative calibration patients near the cutoff (rank in the original pool of 67; official = has an official LUNA16 consensus nodule)",
+  "source": "Fig. 2A (orig reference_tail.pdf); ranks 62 and 55 match \\PRank and \\PairRank, logits at those ranks match \\PairCutoffP=1.524 and \\PairCutoffU=0.630 to 0.01",
+  "values": [
+   {
+    "rank": 53,
+    "logit": 0.52,
+    "official": false
+   },
+   {
+    "rank": 54,
+    "logit": 0.54,
+    "official": false
+   },
+   {
+    "rank": 55,
+    "logit": 0.63,
+    "official": false
+   },
+   {
+    "rank": 56,
+    "logit": 0.75,
+    "official": true
+   },
+   {
+    "rank": 57,
+    "logit": 1.1,
+    "official": true
+   },
+   {
+    "rank": 58,
+    "logit": 1.11,
+    "official": false
+   },
+   {
+    "rank": 59,
+    "logit": 1.13,
+    "official": true
+   },
+   {
+    "rank": 60,
+    "logit": 1.22,
+    "official": true
+   },
+   {
+    "rank": 61,
+    "logit": 1.42,
+    "official": true
+   },
+   {
+    "rank": 62,
+    "logit": 1.52,
+    "official": false
+   },
+   {
+    "rank": 63,
+    "logit": 1.64,
+    "official": true
+   },
+   {
+    "rank": 64,
+    "logit": 1.81,
+    "official": false
+   },
+   {
+    "rank": 65,
+    "logit": 1.87,
+    "official": false
+   },
+   {
+    "rank": 66,
+    "logit": 2.16,
+    "official": true
+   },
+   {
+    "rank": 67,
+    "logit": 2.86,
+    "official": true
+   }
+  ]
+ },
+ "deletion_control": {
+  "what": "observed cutoff rank drop and central 95% range / median of the drop under 8,192 subset-matched random deletions",
+  "source": "Fig. 3A (orig robustness.pdf); drops match Tab. 2, paired-tail band matches \\PairRobustMedian=0 and \\PairControlHi=4",
+  "values": [
+   {
+    "head": "Descriptors / first",
+    "drop": 2,
+    "band_lo": -1,
+    "band_hi": 3,
+    "band_median": 0
+   },
+   {
+    "head": "Descriptors / full ref.",
+    "drop": 2,
+    "band_lo": -1,
+    "band_hi": 4,
+    "band_median": 0
+   },
+   {
+    "head": "Multi-view / first",
+    "drop": 6,
+    "band_lo": -1,
+    "band_hi": 4,
+    "band_median": 1
+   },
+   {
+    "head": "Multi-view / full ref.",
+    "drop": 7,
+    "band_lo": -1,
+    "band_hi": 5,
+    "band_median": 1
+   },
+   {
+    "head": "3D / first",
+    "drop": 6,
+    "band_lo": -1,
+    "band_hi": 4,
+    "band_median": 0
+   },
+   {
+    "head": "3D / full ref.",
+    "drop": 7,
+    "band_lo": -1,
+    "band_hi": 4,
+    "band_median": 0
+   },
+   {
+    "head": "3D / mark IPW",
+    "drop": 6,
+    "band_lo": -1,
+    "band_hi": 4,
+    "band_median": 0
+   },
+   {
+    "head": "3D / paired tail",
+    "drop": 7,
+    "band_lo": -1,
+    "band_hi": 4,
+    "band_median": 0
+   }
+  ]
+ },
+ "reader_pairs": {
+  "what": "omission calls (of 42) after calibrating on the negatives of each reader pair",
+  "source": "Fig. 3B cell labels (orig robustness.pdf); first-read / mark IPW / paired-tail rows match supplement Tab. roles",
+  "values": {
+   "Descriptors / first": {
+    "AB": 2,
+    "AC": 2,
+    "AD": 2,
+    "BC": 2,
+    "BD": 2,
+    "CD": 2
+   },
+   "Multi-view / first": {
+    "AB": 11,
+    "AC": 11,
+    "AD": 11,
+    "BC": 11,
+    "BD": 11,
+    "CD": 4
+   },
+   "3D / first": {
+    "AB": 6,
+    "AC": 6,
+    "AD": 6,
+    "BC": 6,
+    "BD": 6,
+    "CD": 4
+   },
+   "3D / full ref.": {
+    "AB": 1,
+    "AC": 1,
+    "AD": 5,
+    "BC": 1,
+    "BD": 1,
+    "CD": 1
+   },
+   "3D / mark IPW": {
+    "AB": 3,
+    "AC": 3,
+    "AD": 3,
+    "BC": 4,
+    "BD": 3,
+    "CD": 3
+   },
+   "3D / paired tail": {
+    "AB": 1,
+    "AC": 1,
+    "AD": 5,
+    "BC": 2,
+    "BD": 2,
+    "CD": 1
+   }
+  }
+ },
+ "alert_curves": {
+  "what": "mean realized negative-patient alerts (%) vs mean observed-omission recall (%) over calibration-derived cutoffs, six matched fits",
+  "source": "supplement Fig. locked_performance A (orig); nominal points match Tab. 1 (paired 2.5/3.2, mark IPW 4.3/7.1, first read 1.9/9.5) to 0.1",
+  "values": {
+   "paired": [
+    [
+     0.95,
+     0.79
+    ],
+    [
+     1.43,
+     1.98
+    ],
+    [
+     1.75,
+     2.38
+    ],
+    [
+     2.22,
+     2.78
+    ],
+    [
+     2.54,
+     3.17
+    ],
+    [
+     5.4,
+     10.32
+    ],
+    [
+     6.51,
+     12.3
+    ],
+    [
+     7.3,
+     13.49
+    ],
+    [
+     12.06,
+     21.43
+    ],
+    [
+     17.14,
+     29.37
+    ]
+   ],
+   "mark_ipw": [
+    [
+     1.59,
+     3.17
+    ],
+    [
+     2.22,
+     3.97
+    ],
+    [
+     3.49,
+     5.95
+    ],
+    [
+     3.81,
+     6.75
+    ],
+    [
+     4.29,
+     7.14
+    ],
+    [
+     6.35,
+     11.11
+    ],
+    [
+     7.78,
+     14.29
+    ],
+    [
+     8.25,
+     15.48
+    ],
+    [
+     12.06,
+     19.44
+    ],
+    [
+     15.56,
+     26.59
+    ]
+   ],
+   "first": [
+    [
+     1.9,
+     2.38
+    ],
+    [
+     1.9,
+     4.76
+    ],
+    [
+     1.9,
+     7.14
+    ],
+    [
+     1.9,
+     9.52
+    ],
+    [
+     2.86,
+     14.29
+    ],
+    [
+     8.57,
+     14.29
+    ],
+    [
+     10.48,
+     23.81
+    ],
+    [
+     10.48,
+     26.19
+    ],
+    [
+     17.14,
+     30.95
+    ]
+   ],
+   "mark_same_head": [
+    [
+     1.75,
+     1.98
+    ],
+    [
+     2.06,
+     2.38
+    ],
+    [
+     2.38,
+     3.57
+    ],
+    [
+     3.17,
+     5.56
+    ],
+    [
+     4.44,
+     7.54
+    ],
+    [
+     5.4,
+     10.32
+    ],
+    [
+     7.14,
+     13.49
+    ],
+    [
+     9.84,
+     17.06
+    ],
+    [
+     12.38,
+     20.24
+    ],
+    [
+     19.37,
+     28.97
+    ]
+   ]
+  },
+  "nominal": {
+   "paired": [
+    2.54,
+    3.17
+   ],
+   "mark_ipw": [
+    4.29,
+    7.14
+   ],
+   "first": [
+    1.9,
+    9.52
+   ],
+   "mark_same_head": [
+    4.44,
+    7.54
+   ]
+  }
+ },
+ "variability": {
+  "what": "paired tail minus mark IPW (pp) under different sources of variation",
+  "source": "supplement Fig. variability (orig); six-fit CI matches [-7.0,-1.4]; both-resampled matches the text's -14.3 to +7.1",
+  "values": {
+   "omission": {
+    "anchor_patient_ci": {
+     "est": -4.76,
+     "lo": -12.5,
+     "hi": 0.0
+    },
+    "six_fit_patient_ci": {
+     "est": -3.97,
+     "lo": -7.04,
+     "hi": -1.39
+    },
+    "anchor_calibration": {
+     "est": -4.76,
+     "lo": -9.52,
+     "hi": 4.76
+    },
+    "both_resampled": {
+     "est": -2.38,
+     "lo": -14.29,
+     "hi": 7.14
+    },
+    "audit_draws": [
+     -9.52,
+     -4.76,
+     -4.76,
+     -2.38,
+     -2.38,
+     0.0
+    ]
+   },
+   "alerts": {
+    "anchor_patient_ci": {
+     "est": -2.86,
+     "lo": -6.42,
+     "hi": 0.0
+    },
+    "six_fit_patient_ci": {
+     "est": -1.75,
+     "lo": -3.36,
+     "hi": -0.17
+    },
+    "anchor_calibration": {
+     "est": -2.86,
+     "lo": -5.71,
+     "hi": 0.95
+    },
+    "both_resampled": {
+     "est": -0.95,
+     "lo": -8.57,
+     "hi": 3.83
+    },
+    "audit_draws": [
+     -3.81,
+     -3.81,
+     -2.86,
+     0.0,
+     0.0,
+     0.0
+    ]
+   }
+  }
+ }
+}

@@ -29,7 +29,7 @@ The V2 false-positive reduction roster extends the original merged candidate set
 
 For each released contour mark we use positive-inclusion regions, convert pixel coordinates and the slice's physical position to millimeters and take the bounding-box midpoint. The mark size is the largest axis-aligned in-plane extent across slices. For two mark sets, we use one-to-one minimum normalized-distance assignment subject to a distance at most $\max(3\,\mathrm{mm},(d_1+d_2)/4)$, prioritizing match count. The mean center and diameter of each linked C/D pair define a target. A proposal links to the closest target within one normalized radius where the scale is $\max(3\,\mathrm{mm},d/2)$. A target's omission status uses an independent one-to-one link with the first weak read. The signed spacing and origin in the MetaImage header determine the correspondence. The original roles and matching rules are shared across revisions. No missing weak streams occur after requiring four sessions in this benchmark. The discriminative auxiliary still encodes availability explicitly.
 
-An unmatched proposal is \emph{disputed} if it links to an isolated contour marked by only one reference role. The released final LIDC reader records follow an unblinded phase \cite{armato2011}. An isolated contour signals disagreement in the operational reference. No independent diagnostic adjudication of those candidates was collected. A sibling patient-level inventory review found no previously unexposed official positive nodules in subsets 6--9 under its definition of exposure. The present weights and heads were developed without revision scores from subsets 2 and 6--9. We describe the evaluation as retrospective and locked.
+An unmatched proposal is \emph{disputed} if it links to an isolated contour marked by only one reference role. The released final LIDC reader records follow an unblinded phase \cite{armato2011}. An isolated contour signals disagreement in the operational reference. No independent diagnostic adjudication of those candidates was collected. A separate patient-level inventory check found no previously unexposed official positive nodules in subsets 6--9 under its definition of exposure. The present weights and heads were developed without scores from subsets 2 and 6--9. We describe the evaluation as retrospective and locked.
 
 \section{Representation and optimization}
 
@@ -92,7 +92,7 @@ We resample test patients in pairs 4,000 times with fixed weights across the six
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{locked_performance}
-\caption{\textbf{Locked operating points and paired effects.} (A) Every point uses a calibration-derived cutoff, and open markers denote nominal $\alpha=0.10$. (B) Paired-tail omission recall minus each comparator, with patient-clustered intervals. Open markers use the calibration-only matched-alert check.}
+\caption{\textbf{Locked operating points and paired effects.} (a)~Every point uses a calibration-derived cutoff; open markers denote nominal $\alpha=0.10$. (b)~Paired-tail omission recall minus each comparator with 95\% patient-bootstrap intervals (Tab.~\ref{tab:contrasts}). Filled: nominal cutoff; open: calibration-only matched-alert check. The shaded region lies beyond the $-5$-point margin. Curve points were recovered from the original figure (Sec.~\ref{sec:recovered}).}
 \label{fig:locked}
 \end{figure*}
 
@@ -123,11 +123,7 @@ We resample test patients in pairs 4,000 times with fixed weights across the six
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{variability}
-\caption{\textbf{Audit, calibration, and test-patient variation answer different questions.}
-Dark intervals resample test patients jointly conditional on the fitted heads and cutoffs.
-Blue points vary the training audit seed with the original calibration pool fixed.
-Green spans summarize the central 95\% of the matched calibration resamples at the anchor and across all fits.
-The resampled calibration results use the same test patients.}
+\caption{\textbf{Audit, calibration and test-patient variation answer different questions.} Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and cutoffs fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central 95\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients. Values were recovered from the original figure (Sec.~\ref{sec:recovered}).}
 \label{fig:variation}
 \end{figure*}
 
@@ -167,15 +163,19 @@ Use one random subset within each of the two original calibration folds, retaini
 Reparse the four LIDC sessions with the original geometry. For each of the six possible unordered pairs, reconstruct pair consensus without scores and verify that C/D reproduces the locked target count on every retained scan. Calibrate on the negatives of each pair and apply the resulting cutoffs to the original target list. The test alert support is the intersection of negatives for the six pairs and the official list, with \RoleTest{} patients. This design isolates sensitivity to reader assignment. Each pair reuses the same unblinded records.
 
 \paragraph{Uncertainty and provenance.}
-Compute paired test-patient intervals with 4,000 bootstrap samples after averaging the matched audit fits within each patient. When comparing references, the scores, calibration pools, and cutoffs are held fixed for this bootstrap. The intervals describe variation across test patients under those settings. The blocked random deletion distribution varies only the calibration membership. The follow-up plan was specified after an initial anchor reference check. The prior training and allocation protocol specifies the locked comparison. The output ledgers include the original-fit metrics replay, reference membership, head fingerprints, cutoff order, random-deletion distribution, alert counts, and target calls. The figures are generated from the measured ledgers and staged CT images.
+Compute paired test-patient intervals with 4,000 bootstrap samples after averaging the matched audit fits within each patient. When comparing references, the scores, calibration pools, and cutoffs are held fixed for this bootstrap. The intervals describe variation across test patients under those settings. The blocked random deletion distribution varies only the calibration membership. The reference follow-up was specified after the locked comparison had been scored. The prior training and allocation protocol specifies the locked comparison. The output ledgers include the original-fit metrics replay, reference membership, head fingerprints, cutoff order, random-deletion distribution, alert counts, and target calls. The figures are generated from the measured ledgers and staged CT images.
 
-\section{Earlier estimator check}
+\section{Estimator check in simulation}
 
-The historical controlled simulation holds a finite synthetic population and its auxiliary fit fixed and varies the audits and dependence between weak readers. The base-budget augmented prevalence estimate reduced RMSE by about 10--12\% versus the Horvitz--Thompson estimate. The estimand is the proportion of positives among first-reader-unmarked proposals. The image-conditioned bookmark intervention and observed-reader CT endpoints above are localization experiments with different estimands.
+A controlled simulation holds a finite synthetic population and its auxiliary fit fixed and varies the audits and dependence between weak readers. The base-budget augmented prevalence estimate reduced RMSE by about 10--12\% versus the Horvitz--Thompson estimate. The estimand is the proportion of positives among first-reader-unmarked proposals. The image-conditioned bookmark intervention and observed-reader CT endpoints above are localization experiments with different estimands.
+
+\section{Figure data provenance}
+\label{sec:recovered}
+All figures were regenerated by the scripts in \texttt{scripts/}; every plotted number is listed in \texttt{scripts/data.py} with its source. Numbers printed in the tables are used directly. Values that appear only in figures (per-draw reach, the calibration maxima near the cutoff, random-removal ranges, reader-pair cells, alert curves and the variability decomposition) were read back from the vector geometry of the earlier figure files and rounded to their natural resolution (counts to integers, omission recall to multiples of $1/42$). Each recovered set reproduces the numbers stated in the text.
 
 \FloatBarrier
 \section*{LLM Usage Statement}
-OpenAI Codex assisted with experimental design, implementation, analysis, data-derived figures, literature verification and writing.
+OpenAI Codex assisted with experimental design, implementation, analysis, data-derived figures, literature verification and writing. Claude (Anthropic) assisted with revising the text, redrawing the figures from the reported values, and checking references. The authors take full responsibility for the content.
 
 {\small
 \bibliographystyle{ieeenat_fullname}

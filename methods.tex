@@ -1,59 +1,107 @@
-\section{Tail-Guided Auditing and Calibration}
+\section{Method}
 \label{sec:methods}
 
-\subsection{Spatial marks and the CT benchmark}
+We first fix the notation (Sec.~\ref{sec:setting}). We then describe where to audit (Sec.~\ref{sec:audit}), how audited labels train a detector (Sec.~\ref{sec:training}), how a patient alert cutoff is set (Sec.~\ref{sec:cutoff}), and how we change the negative pool with scores fixed (Sec.~\ref{sec:replay}). Algorithm~\ref{alg:audit} summarizes the procedure.
 
-Each patient has a fixed candidate roster. Proposal $i$ has image features $X_i$ and weak marks from roles A and B, each recorded as marked, assessed and unmarked, or unavailable. The original reference pairs spatially concordant nodule contours from roles C and D. A proposal label $Y_i=1$ means it matches a target under the original geometric rule. An \emph{omission} is an original target with no link to A's marks. This definition precedes scoring and includes targets without an eligible proposal.
+\subsection{Setting and notation}
+\label{sec:setting}
 
-We use official LUNA16 V2 coordinates and discard the provided candidate class \cite{setio2017,luna16v2}. The roster merges CAD outputs, including components developed on the LIDC source data. We assign roles by a seeded per-scan permutation of the four final LIDC reading sessions. They are unblinded records with shared initial marks \cite{armato2011}. The original target geometry is the mean center and diameter of paired C/D contours, linked one-to-one within the greater of 3\,mm and the mean contour radius. The supplement specifies the matcher and the complete cohort. The final fit, calibration and test sets contain 445, 175 and 265 distinct patients, with 92 observed training omissions and 42 test omissions. We use official subsets 0, 1 and 3--5 for fitting, 2 and 6 for calibration, and 7--9 for testing.
+\paragraph{Candidates, marks and targets.}
+Each patient has one CT scan and a fixed \emph{roster} of candidate locations proposed by earlier detection systems. We index candidates by $i$. Candidate $i$ has image features $X_i$, computed from the CT around its location. Each scan was read by four LIDC readers, whom we randomly assign to four \emph{roles} A, B, C and D per scan. Readers A and B are the \emph{weak reads}: for each candidate we record whether A (and, separately, B) marked a nodule there, assessed the scan without marking it, or was unavailable. Readers C and D define the \emph{reference}: a \emph{target} $j$ is a nodule contoured by both C and D at the same place, with the mean of their centres and diameters as its geometry. Candidate $i$ has reference label $Y_i=1$ if it lies within one target radius (at least 3\,mm) of a target, and $Y_i=0$ otherwise. An \emph{omission} is a target that reader A did not mark. This is decided before any candidate is scored, so a target counts as an omission even if no candidate lies on it.
 
-\subsection{A probability audit for the score tail}
+\paragraph{Data.}
+We use the 888 scans of LUNA16 with its V2 candidate coordinates, and discard the candidate class label provided with them~\cite{setio2017,luna16v2}. After removing one repeated patient and two scans without exactly four reading sessions, the fitting, calibration and test sets contain 445, 175 and 265 patients (official subsets 0, 1, 3--5; 2 and 6; 7--9). They hold 92 training omissions and 42 test omissions among 541 and 276 targets. The supplement gives the matching rules and the full cohort.
 
-We freeze a development-only first-read image score $s_i$ and its low-alert cutoff $t_0$. For within-scan rank $r_i$ in descending score order, let
+\subsection{Where to audit: paired-tail sampling}
+\label{sec:audit}
+
+An \emph{audit} reveals $Y_i$ for one training candidate. We choose a probability $\pi_i$ for every candidate and audit candidate $i$ with an independent coin flip, $R_i\sim\mathrm{Bernoulli}(\pi_i)$. Known $\pi_i$ make later corrections unbiased~\cite{horvitz1952}. The design has three ingredients.
+
+\paragraph{Step 1: leverage on the alert.}
+A candidate can only change a patient alert if it can become the highest score in its scan or exceed the cutoff. We freeze a pilot detector trained on development data with reader A's marks. It gives a score $s_i$, a low-alert cutoff $t_0$, and the rank $r_i$ of candidate $i$ within its scan ($r_i=1$ is the highest). We define
 \begin{equation}
- h_i=\max\!\left\{\exp[-(r_i-1)/6],\
-                    \sigma((s_i-t_0+1)/0.7)\right\}.
+ h_i=\max\!\left\{e^{-(r_i-1)/6},\ \sigma\!\left(\tfrac{s_i-t_0+1}{0.7}\right)\right\},
  \label{eq:leverage}
 \end{equation}
-The first term covers proposals that dominate their own scan. The second favors proposals near or above the common cutoff. Image-tail sampling uses $h_i$ alone. Paired tail also estimates the union of the weak marks out of fold using an image model. For its prediction $p_i$ and zero, one or two observed marks, the working probability $u_i$ is $0.35p_i$, $0.55+0.35p_i$, or $0.92+0.06p_i$, respectively. The resulting variance proxy $v_i=\max\{u_i(1-u_i),0.006\}$ gives extra weight to informative disagreements.
+where $\sigma$ is the logistic function. The first term is 1 for the top candidate of a scan and halves about every four ranks. The second term approaches 1 as the score nears or exceeds the cutoff ($+1$ starts the rise one logit below $t_0$; $0.7$ sets its width). For example, the fourth-ranked candidate of a scan, scoring one logit below $t_0$, has $h_i=\max\{0.61,0.50\}=0.61$. The 200th has $h_i\approx 0$.
 
-Given budget $B$, the design minimizes the surrogate $\sum_i \bar h_i^2v_i(1/\pi_i-1)$ with $\bar h_i=\max(h_i,0.002)$ under a sum constraint and box bounds. The solution is
+\paragraph{Step 2: uncertainty from two weak reads.}
+Let $m_i\in\{0,1,2\}$ count the weak marks on candidate $i$, and let $p_i$ be the out-of-fold prediction of an image model trained to predict ``A or B marked here''. We use a working probability that the candidate is a target,
 \begin{equation}
- \pi_i=\operatorname{clip}(c\bar h_i\sqrt{v_i},\,0.005b,\,0.95),
- \qquad \sum_i\pi_i=B.
+ u_i=\begin{cases}0.35\,p_i & m_i=0,\\ 0.55+0.35\,p_i & m_i=1,\\ 0.92+0.06\,p_i & m_i=2,\end{cases}
+ \label{eq:working}
+\end{equation}
+and its Bernoulli variance $v_i=\max\{u_i(1-u_i),\,0.006\}$. These fixed coefficients are a design heuristic chosen before any reference label was revealed. They make two agreeing marks nearly certain ($v_i$ small) and one mark, a disagreement, uncertain ($v_i$ near its maximum 0.25). The floor 0.006 keeps clear negatives from vanishing.
+
+\paragraph{Step 3: allocation.}
+Given the expected budget $B=\sum_i\pi_i$, we choose $\pi_i$ to minimize $\sum_i \bar h_i^2 v_i\,(1/\pi_i-1)$, with $\bar h_i=\max(h_i,0.002)$. This is a surrogate for the variance of an inverse-probability label correction, weighted by leverage: auditing a candidate with large $h_i$ and large $v_i$ removes the most uncertainty where alerts are decided. Setting the derivative to a common multiplier gives the square-root rule
+\begin{equation}
+ \pi_i=\operatorname{clip}\!\left(c\,\bar h_i\sqrt{v_i},\ 0.005b,\ 0.95\right),
+ \qquad \textstyle\sum_i\pi_i=B,
  \label{eq:allocation}
 \end{equation}
-Here $b$ is the budget factor and $c$ sets the expected number of candidate decisions. Image tail uses constant $v_i$. Mark stratification uses $(0.02,0.35,0.20)b$ for zero, one and two marks and sets the expected budget for every policy. Uniform selection uses $B/N$ for $N$ candidates. Inclusion is Bernoulli with known positive probabilities. Audit policies share random uniforms, and every training objective within a policy shares the same revealed labels.
+where $c$ is found by bisection to meet the budget, $b\in\{0.5,1\}$ is the budget factor (half and base), and the floor $0.005b$ gives every candidate a chance of review.
 
-For a target $j$ with eligible proposal indices $\mathcal I_j$, the exact chance of exposure is
+\paragraph{Controls at the same budget.}
+\emph{Image tail} uses Eq.~\eqref{eq:allocation} with constant $v_i$, i.e., ranking without marks. \emph{Mark stratification}, the conventional design, uses $\pi_i=(0.02,0.35,0.20)\,b$ for $m_i=0,1,2$; its expected count defines $B$ for all policies. \emph{Uniform} uses $\pi_i=B/N$ for $N$ candidates. All policies share the same random numbers in each of six matched draws.
+
+\paragraph{Reach.}
+Several candidates can lie on one target, so we count distinct targets. If $\mathcal I_j$ holds the candidates on target $j$, the probability that at least one of them is audited is
 \begin{equation}
- a_j=1-\prod_{i\in\mathcal I_j}(1-\pi_i).
+ a_j=1-\textstyle\prod_{i\in\mathcal I_j}(1-\pi_i),
  \label{eq:reach}
 \end{equation}
-The empty product is one. Summing over omissions counts distinct reached targets in expectation and separates acquisition from duplicate candidate decisions.
+with $a_j=0$ if $\mathcal I_j$ is empty. The sum of $a_j$ over omissions is the expected number of omissions reached.
 
-\subsection{Image-only training}
+\begin{algorithm}[t]
+\caption{Paired-tail audit and score-fixed reference replay}
+\label{alg:audit}
+\small
+\begin{algorithmic}[1]
+\Require training roster with pilot scores $s_i$, ranks $r_i$, mark counts $m_i$, image predictions $p_i$; budget $B$
+\State $h_i\gets$ Eq.~\eqref{eq:leverage}; \ $u_i\gets$ Eq.~\eqref{eq:working}
+\State $v_i\gets\max\{u_i(1-u_i),\,0.006\}$
+\State bisect $c$ so that $\sum_i\pi_i=B$, with $\pi_i$ from Eq.~\eqref{eq:allocation}
+\State draw $R_i\sim\mathrm{Bernoulli}(\pi_i)$; reveal $Y_i$ where $R_i=1$
+\State fit $q_i$ out of fold; $z_i\gets q_i+R_i(Y_i-q_i)/\pi_i$
+\State fit image-only head $g$ with logistic loss on $z_i$
+\For{negative pool $\mathcal N\in\{P,U\}$} \Comment{same scores}
+\State $S_j\gets\max_{i\in j} g(X_i)$ for every $j\in\mathcal N$
+\State $k\gets\lceil(|\mathcal N|+1)(1-\alpha)\rceil$; \ $T_{\mathcal N}\gets S_{(k)}$
+\State count targets and alerts with $g(X_i)>T_{\mathcal N}$
+\EndFor
+\State compare $T_U$ with 8,192 random removals of $|P|-|U|$ patients
+\end{algorithmic}
+\end{algorithm}
 
-The fixed-roster factorial uses either 32 handcrafted intensity and Hessian descriptors \cite{li2003} or a 32-dimensional embedding from a 3D CNN on 24\,mm candidate patches. The encoder is trained on first-role marks from 267 development patients and frozen. All learned heads in the observed arm share the same embedding. A controlled bookmark arm retains A's largest contour and uses its own first-role encoder. Every deployed head takes image features alone.
+\subsection{Training from audited labels}
+\label{sec:training}
 
-Let $R_i$ indicate an audit and let $q_i$ be a reference prediction trained outside the patient's fold. The discriminative auxiliary uses the image embedding and weak-mark indicators, including agreement and availability. The final ridge logit is fit with label
+Every deployed detector takes image features only; marks and audits are used for training, never as inputs. Features are either 32 hand-crafted intensity and Hessian descriptors~\cite{li2003} or a 32-dimensional embedding from a 3D CNN on 24\,mm patches, trained on reader A's marks from 267 development patients and then frozen. A linear logistic head $g$ maps features to a logit.
+
+Most training candidates are not audited. Let $q_i$ be a prediction of $Y_i$ from a model fitted on other patient folds (the \emph{auxiliary}; ours uses the image embedding, the weak marks, their agreement and availability). We train on the corrected target
 \begin{equation}
- z_i=q_i+\frac{R_i}{\pi_i}(Y_i-q_i).
+ z_i=q_i+\frac{R_i}{\pi_i}\,(Y_i-q_i).
  \label{eq:augmentation}
 \end{equation}
-Conditional on the pre-audit inputs and the out-of-fold fit, $\mathbb E_R[z_i]=Y_i$. Logistic loss is affine in its target, so the fixed-head risk has the reference expectation. The signed residual variance is $(1-\pi_i)(Y_i-q_i)^2/\pi_i$. The supplement gives image-only and EM auxiliaries, power tuning, and the weighted-loss ablation. The factorial also includes first- and second-read fitting, nonnegative PU with an audited prior, direct inverse-probability-weighted (IPW) fitting, and a full-reference head.
+Unaudited candidates keep the prediction $q_i$; audited ones add the residual, scaled up by $1/\pi_i$. Because $\mathbb E[R_i]=\pi_i$, $\mathbb E[z_i]=Y_i$ for any fixed auxiliary, and logistic loss is linear in its target, so the expected training loss equals the loss on the full reference labels. The price is variance $(1-\pi_i)(Y_i-q_i)^2/\pi_i$, which is large for candidates with a small $\pi_i$ and a poor $q_i$. We compare this \emph{discriminative augmentation} with first- and second-read training, nonnegative PU learning, direct inverse-probability weighting (IPW), EM and image-only auxiliaries, and a full-reference head (supplement).
 
-\subsection{Patient alerts and reference membership}
+\subsection{Patient alerts and the cutoff}
+\label{sec:cutoff}
 
-A patient score is the maximum candidate logit $S_j$. For $n$ reference-negative calibration patients, use the ascending order statistic
+A patient's score is the maximum logit over its candidates, $S_j=\max_{i\in j}g(X_i)$. Given $n$ negative calibration patients with sorted scores $S_{(1)}\le\dots\le S_{(n)}$, the cutoff for a target alert rate $\alpha$ is
 \begin{equation}
  T_\alpha=S_{(k)},\qquad k=\lceil(n+1)(1-\alpha)\rceil ,
  \label{eq:cutoff}
 \end{equation}
-with an infinite cutoff if $k>n$. A proposal alerts on strict exceedance. With distinct exchangeable maxima from the stated negative population, exceedance probability is $(n+1-k)/(n+1)$ \cite{angelopoulos2023conformal}. A target is recovered if any of its proposals exceeds the cutoff. Duplicate alerts count toward FP/scan.
+and a patient alerts if any candidate scores strictly above $T_\alpha$. If the negative maxima are exchangeable with those of future negatives, the alert probability is $(n+1-k)/(n+1)\le\alpha$~\cite{angelopoulos2023conformal}. With our $n=\PCal$ and $\alpha=0.10$, $k=\lceil 61.2\rceil=\PRank$: the cutoff is the sixth-largest negative maximum, and the guaranteed rate is $6/68=8.8\%$. A target is \emph{recovered} if any of its candidates exceeds the cutoff.
 
-We report two analyses. The locked retrospective comparison uses the original C/D reference and nominal $\alpha=0.10$. Development selected half-budget paired-tail discriminative augmentation against full-budget mark IPW. The original primary endpoint is recall on observed omissions, with a five-point noninferiority margin and prespecified alert and FP/scan limits for the efficiency comparison. Intervals resample test patients jointly across six matched audit draws. The supplement separates audit variation from calibration variation and reports the calibration-only matched-alert check. Earlier work inspected regions of the public evaluation scans. This study froze the weights, endpoints and contrasts before revision scoring on the designated calibration and test subsets.
+\subsection{Changing the negative pool with scores fixed}
+\label{sec:replay}
 
-The score-fixed follow-up changes only which patients qualify as negative. Let $P$ be the C/D negatives and let $U$ be the patients negative under both C/D and the official LUNA16 reference, which requires agreement from at least three of four readers \cite{setio2017}. The $P$ score distribution mixes maxima from $U$ and from $P\setminus U$. Large maxima in the latter group can raise the upper quantile. We preserve all candidate scores and all original test targets, and evaluate both cutoffs on the same $U$-negative test patients. Thus the threshold effect on recovery is isolated from both score changes and changes to the target denominator.
+The guarantee holds only for the population the negatives represent. Let $P$ be the patients negative under the C/D reference, and $U\subseteq P$ those that are also negative under the official LUNA16 reference, which accepts a nodule marked by at least three of four readers~\cite{setio2017}. The excluded set $E=P\setminus U$ contains scans with a nodule that C and D did not both mark. Their maxima can be large, and since $P$ mixes $U$ and $E$, they can raise the upper order statistic. We recompute Eq.~\eqref{eq:cutoff} on $U$ while keeping \emph{every} candidate score and \emph{every} original test target, and count alerts on the same $U$-negative test patients under both cutoffs. Any change in recovery is then due to the cutoff alone.
 
-We use 8,192 shared random deletions within calibration subsets, matching the number of exclusions in each subset. With $m$ removals the $k'$th remaining score originally lay between ranks $k'$ and $k'+m$. The random-deletion distribution measures the rank shift expected from the smaller pool. We also rebuild calibration pools for every pair of reader roles, preserving the test target list and using patients negative by every pair and the official reference for the common alert denominator. These follow-ups extend an initial anchor check on the same public cohort.
+Removing patients also changes $n$ and $k$: with $n=\UCal$, $k=\lceil 48.6\rceil=\URank$. To separate the effect of \emph{which} patients leave from the effect of a smaller pool, we remove the same number of patients at random within each calibration subset 8,192 times and locate the new cutoff on the original rank scale. We also rebuild the negative pool for each of the six reader pairs (AB, \dots, CD), keeping the original targets and a test-negative set common to all pairs.
+
+\paragraph{Protocol.}
+The locked comparison uses the C/D reference and $\alpha=0.10$. On development subsets we selected half-budget paired-tail sampling with discriminative augmentation, to be compared with base-budget mark IPW. The primary endpoint is recall on test omissions, with a non-inferiority margin of $-5$ points and limits on alerts and false positives per scan (FP/scan). Intervals resample test patients jointly over the six matched draws (4,000 bootstrap samples). Weights, endpoints and contrasts were frozen before the calibration and test subsets were scored. The reference replay of Sec.~\ref{sec:replay} was specified afterwards and is reported as a follow-up.
