@@ -1,26 +1,52 @@
-\section{Audit Yield and Detector Performance}
+\section{Experiments}
 \label{sec:yield}
 
-\subsection{Paired-tail sampling reaches more distinct omissions}
+\subsection{Experimental setup}
+\label{sec:setup}
+
+\paragraph{Dataset.}
+We use the 888 scans of LUNA16 with the V2 candidate coordinates and discard the candidate class labels distributed with them~\cite{setio2017,luna16v2}. After removing one repeated patient and two scans that do not have exactly four reading sessions, the fitting, calibration and test sets contain 445, 175 and 265 patients, drawn from official subsets 0, 1 and 3--5, subsets 2 and 6, and subsets 7--9, respectively. They contain 92 training omissions and 42 test omissions among 541 and 276 targets. Matching rules and cohort details are given in the supplement.
+
+\paragraph{Detectors and baselines.}
+We use two image representations: 32 hand-crafted intensity and Hessian descriptors~\cite{li2003}, and a 32-dimensional embedding from a 3D CNN applied to 24\,mm patches, which is trained on reader A's marks from 267 development patients and then frozen. Besides discriminative augmentation, we train heads with first- and second-read labels, nonnegative positive--unlabeled (nnPU) learning, inverse-probability weighting of audited labels (IPW), EM-based and image-only auxiliaries, and the full reference labels as an upper reference. Architectures and optimization details are given in the supplement.
+
+\paragraph{Evaluation protocol.}
+The locked comparison uses the C/D reference and $\alpha=0.10$. On development subsets, we selected half-budget paired-tail sampling with discriminative augmentation and compared it with base-budget mark-stratified IPW. The primary endpoint is recall on test omissions, with a non-inferiority margin of $-5$ points and additional limits on the alert rate and on false positives per scan (FP/scan). Confidence intervals are obtained by resampling test patients jointly over the six matched audit draws (4,000 bootstrap samples). Results for a single draw refer to the first matched draw, which we call the \emph{anchor}. All weights, endpoints and contrasts were fixed before the calibration and test subsets were scored.
+
+\subsection{Audit reach}
 \label{sec:reach}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{acquisition}
-\caption{\textbf{Paired-tail audits reach more omitted nodules.} (a)~Expected number of the 92 training omissions with at least one audited candidate (Eq.~\ref{eq:reach}), at the half and base budgets; faint points are the six matched draws. (b)~At half budget, expected reach among the 35 omissions on which neither weak reader placed a mark.}
+\caption{\textbf{Audit reach.} (a)~Expected number of the 92 training omissions with at least one audited candidate (Eq.~\ref{eq:reach}), at the half and base budgets; faint points are the six matched draws. (b)~At half budget, expected reach among the 35 omissions on which neither weak reader placed a mark.}
 \label{fig:acquisition}
 \end{figure}
 
-On the 445 training patients, half-budget paired tail audits about 3,940 candidates and reaches \ReachPair{} of the 92 omissions in expectation (Fig.~\ref{fig:acquisition}a). Mark stratification at the base budget audits about 7,930 candidates and reaches \ReachMark{}. At the same half budget, image tail reaches \ReachImage{}, mark stratification 13.0 and uniform sampling 1.4. Most of the gain therefore comes from the image ranking, and adding the paired marks reaches a further 15.2 omissions; in each of the six matched draws the increment is 10 to 17. The realized draws agree with the expectation: paired tail reaches 76--82 omissions per draw, image tail 62--69, and base mark stratification 22--27.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{effects}
+\caption{\textbf{Method comparison under two negative pools.} (a)~Mean omission recall against mean realized alerts over the calibration-derived cutoffs; open markers are the nominal $\alpha=0.10$ points of Tab.~\ref{tab:alloc}. (b--d)~Selected method minus each baseline, six-draw mean with 95\% patient-bootstrap intervals, using the same scores and the same 42 omissions, 276 targets and 90 common-negative test patients. Open circles: cutoff from C/D negatives; purple diamonds: cutoff after excluding patients with an official consensus nodule. The shaded region in (b) lies beyond the prespecified non-inferiority margin.}
+\label{fig:effects}
+\end{figure*}
 
-The gain also holds for the 35 omissions on which \emph{neither} weak reader placed a mark, where paired marks cannot point to the target (Fig.~\ref{fig:acquisition}b). Paired tail reaches 27.4 of them, image tail 22.6, and mark stratification 0.4 at the same budget (0.9 at the base budget). The marks change how the budget is spread across the whole roster, freeing reviews for high-ranked unmarked candidates. Both paired tail and mark stratification touch nearly all 445 patients, so the gain comes from \emph{which} candidates are reviewed within each scan, not from opening more scans.
+On the 445 training patients, half-budget paired-tail sampling audits about 3,940 candidates and reaches \ReachPair{} of the 92 omissions in expectation (Fig.~\ref{fig:acquisition}a), whereas mark stratification at the base budget audits about 7,930 candidates and reaches \ReachMark{}. At the same half budget, image-tail sampling reaches \ReachImage{}, mark stratification 13.0 and uniform sampling 1.4. Most of the gain is therefore due to the image ranking, with the paired marks contributing a further 15.2 omissions on average and between 10 and 17 in each of the six matched draws. The realized draws are consistent with these expectations, ranging from 76 to 82 omissions for paired-tail sampling, 62 to 69 for image-tail sampling and 22 to 27 for base-budget mark stratification.
 
-\subsection{Learned features improve within-scan ordering}
+The improvement persists for the 35 omissions on which neither weak reader placed a mark, where the marks cannot point to the target directly (Fig.~\ref{fig:acquisition}b). Paired-tail sampling reaches 27.4 of them, compared with 22.6 for image-tail sampling and 0.4 for mark stratification at the same budget (0.9 at the base budget). In this case the marks act indirectly, by changing how the budget is distributed over the entire roster and thereby freeing reviews for highly ranked unmarked candidates. Since both paired-tail sampling and mark stratification touch nearly all 445 patients, the gain stems from which candidates are reviewed within each scan rather than from opening more scans.
 
-With all training labels (the full-reference head), 3D features recover \OriginalLearned{} of 276 test targets against \OriginalDescriptor{} for hand-crafted descriptors, a paired gain of 9.8 points [3.6, 16.6], and negative-patient alerts fall from 12 to 2 of 105. The share of covered targets that outrank every non-target candidate in their scan rises from 33.6\% to 67.9\%. Both heads use the same candidate locations, so this isolates the representation. All results below use the 3D features.
+\subsection{Effect of the representation}
 
-\subsection{The locked comparison}
+With full reference labels, 3D features recover \OriginalLearned{} of the 276 test targets, compared with \OriginalDescriptor{} for the hand-crafted descriptors, a paired gain of 9.8 points [3.6, 16.6], while negative-patient alerts fall from 12 to 2 of 105. The fraction of covered targets that outrank every non-target candidate in their scan rises from 33.6\% to 67.9\%. As both heads share the same candidate locations, this comparison isolates the representation, and we use the 3D features in all remaining experiments.
+
+\subsection{Main results}
 \label{sec:locked}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{reference_tail}
+\caption{\textbf{Threshold displacement at fixed scores.} (a)~The 15 largest maxima of the 67 C/D-negative calibration patients for the selected detector. Purple diamonds have a nodule in the official LUNA16 consensus. Excluding the 14 such patients moves the cutoff from rank 62 to the score at rank 55, while removing 14 patients at random puts it within the shaded ranks 58--63 (central 95\%). (b)~Omissions found among the same 42 targets, and (c)~alerts among the same 90 common-negative test patients, under the two cutoffs.}
+\label{fig:tail}
+\end{figure*}
 
 \begin{table}[t]
 \centering
@@ -31,64 +57,50 @@ With all training labels (the full-reference head), 3D features recover \Origina
 \input{tables/allocations}
 \end{table}
 
-Table~\ref{tab:alloc} lists all training methods. Against base mark IPW, the selected method uses \AuditSave\% fewer audits and raises all-target recall from 20.1\% to 23.1\%, a paired gain of 3.0 points [1.3, 4.9], with fewer alerts (2.5\% vs.\ 4.3\%) and similar FP/scan (0.15 vs.\ 0.16).
+Table~\ref{tab:alloc} reports all training methods. Compared with base-budget mark IPW, the selected method uses \AuditSave\% fewer audits and raises all-target recall from 20.1\% to 23.1\%, a paired gain of 3.0 points [1.3, 4.9], at a lower alert rate (2.5\% vs.\ 4.3\%) and a similar FP/scan (0.15 vs.\ 0.16). On the primary endpoint, however, the selected method falls short. Its omission recall is \PairPrimary\%, against \IpwPrimary\% for mark IPW, a difference of $-4.0$ points [$-7.0$, $-1.4$] whose lower limit lies below the $-5$-point margin (Fig.~\ref{fig:effects}b, open circles). The conclusion is unchanged at matched alert rates: selecting each method's threshold on one calibration subset so that their alert rates on the other subset agree yields a difference of $-3.6$ points [$-7.0$, $-0.9$].
 
-\textbf{The primary endpoint is not met.} Omission recall is \PairPrimary\% for the selected method and \IpwPrimary\% for mark IPW, a difference of $-4.0$ points [$-7.0$, $-1.4$]. The lower limit lies below the $-5$-point margin (Fig.~\ref{fig:effects}b, open circles). The result holds at matched alert rates: choosing each method's cutoff on one calibration subset so that their alert rates on the other match gives $-3.6$ points [$-7.0$, $-0.9$]. First-read training, which uses reader A's marks directly, reaches 9.5\% omission recall. At half budget, the mark, uniform and image-tail controls with the same training reach 7.5\%, 7.9\% and 4.8\%. Along the full alert curve (Fig.~\ref{fig:effects}a), first-read training leads below 3\% alerts, and the audited methods track each other closely at every rate. A controlled arm with an imposed size-based omission rule is reported in the supplement.
+First-read training, which uses reader A's marks directly, achieves an omission recall of 9.5\%, and the half-budget mark, uniform and image-tail controls with the same estimator reach 7.5\%, 7.9\% and 4.8\%. Along the full alert curve (Fig.~\ref{fig:effects}a), first-read training leads below an alert rate of 3\%, while the audited methods remain close to one another at every rate. Results for a controlled setting in which the first reader keeps only its largest mark per scan, creating 151 imposed test omissions, are reported in the supplement.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{effects}
-\caption{\textbf{The method comparison depends on who is negative.} (a)~Mean omission recall against mean realized alerts over the calibration-derived cutoffs; open markers are the nominal $\alpha=0.10$ points of Tab.~\ref{tab:alloc}. (b--d)~Selected method minus each baseline, six-draw mean with 95\% patient-bootstrap intervals, using the same scores and the same 42 omissions, 276 targets and 90 common-negative test patients. Open circles: cutoff from C/D negatives; purple diamonds: cutoff after excluding patients with an official consensus nodule. The shaded region in (b) lies beyond the prespecified non-inferiority margin.}
-\label{fig:effects}
-\end{figure*}
-
-\subsection{Where the omissions are missed}
+\subsection{Analysis of missed omissions}
 \label{sec:misses}
-
-Every one of the 42 test omissions has at least one candidate on it, so the roster covers them all. For the selected detector at the anchor draw, 16 omissions outrank every non-target candidate in their scan, yet only one exceeds the cutoff. Of the 41 misses, 26 are outranked by a non-target candidate in the same scan, and 15 win that comparison but stay below the cutoff, by a median of 2.22 logits. The second group fails at the cutoff, not at ordering.
-
-The candidates that set the cutoff are unusual. Among 45,541 candidates on C/D-negative calibration scans, only 74 lie near a contour marked by just one of the reference readers C or D. Yet all three sampled maxima around the cutoff carry this flag, as do both maxima that trigger alerts on C/D-negative test patients, and both match official LUNA16 targets. This concentration motivates the replay below.
-
-\section{The Negative Reference Sets the Operating Point}
-\label{sec:tail}
-
-\subsection{A few patients set the cutoff}
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{reference_tail}
-\caption{\textbf{Reference membership moves the cutoff with fixed scores.} (a)~The 15 largest maxima of the 67 C/D-negative calibration patients for the selected detector. Purple diamonds have a nodule in the official LUNA16 consensus. Excluding the 14 such patients moves the cutoff from rank 62 to the score at rank 55, while removing 14 patients at random puts it within the shaded ranks 58--63 (central 95\%). (b)~Omissions found among the same 42 targets, and (c)~alerts among the same 90 common-negative test patients, under the two cutoffs.}
-\label{fig:tail}
-\end{figure*}
-
-Excluding scans with an official consensus nodule removes 14 of the \PCal{} negative calibration patients, leaving \UCal{}. Three of the six largest maxima of the selected detector belong to excluded patients, and each matches an official nodule in 3D (Fig.~\ref{fig:tail}a). The original cutoff is the 62nd score, a logit of \PairCutoffP{}. The new cutoff is the 49th of 53, a logit of \PairCutoffU{}, which was the 55th score in the original pool: a drop of \PairDrop{} ranks. Removing 14 patients at random, with the same number per calibration subset, moves the cutoff by a median of \PairRobustMedian{} ranks, and at most \PairControlHi{} ranks in 95\% of draws. The size of the drop is due to \emph{which} patients leave.
-
-At the lower cutoff the same scores recover \PairHitsU{} of 42 omissions instead of \PairHitsP{} (Fig.~\ref{fig:tail}b). Five of the ten new calls were already ranked above every non-target candidate in their scan. Alerts on the same \UTest{} test patients rise from \PairAlertsP{} to \PairAlertsU{} (Fig.~\ref{fig:tail}c), which is consistent with the nominal 10\% rate.
-
-\subsection{The effect holds across detectors and reader pairs}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{robustness}
-\caption{\textbf{Robustness of the reference effect.} (a)~Cutoff drop on the original rank scale after excluding official-positive patients (dots), against the central 95\% range (bar, with median tick) of 8,192 subset-matched random removals. (b)~Omissions found among the same 42 targets after calibrating on the negatives of each reader pair; the boxed column is the original C/D reference.}
+\caption{\textbf{Robustness of the threshold displacement.} (a)~Cutoff drop on the original rank scale after excluding official-positive patients (dots), against the central 95\% range (bar, with median tick) of 8,192 subset-matched random removals. (b)~Omissions found among the same 42 targets after calibrating on the negatives of each reader pair; the boxed column is the original C/D reference.}
 \label{fig:robust}
 \end{figure*}
 
-We repeated the replay for all \NHeadRows{} fitted configurations, which give \NHeads{} distinct score vectors over hand-crafted, multi-view and 3D features. The cutoff falls for \LowerHeads{} of them, by a median of \MedianDrop{} ranks, and for \PastBand{} the drop exceeds the 95\% range of random removal. These vectors share patients and include correlated training variants, so the count shows breadth, not independent replications.
+Every one of the 42 test omissions is covered by at least one candidate, so the roster itself is not the bottleneck. For the selected detector at the anchor draw, 16 omissions outrank every non-target candidate in their scan, yet only one of them exceeds the threshold. Of the 41 missed omissions, 26 are outranked by a non-target candidate in the same scan, whereas the remaining 15 win this within-scan comparison but stay below the threshold by a median of 2.22 logits. For the latter group, the failure occurs at the threshold rather than in the ranking.
 
-Fig.~\ref{fig:robust}a and Tab.~\ref{tab:reference} show eight representative detectors. The descriptor heads move by two ranks, inside the random range, and keep their two omission calls. Every learned head moves by six or seven ranks, outside the range. A lower cutoff yields more detections only when the representation places targets between the two cutoffs: the 3D first-read and full-reference heads gain 7 and 9 omissions, the mark IPW head only 3. Changing which reader pair defines the negatives gives one to five calls for the selected detector, with zero or one alert among the \RoleTest{} patients negative under every pair and the official list (Fig.~\ref{fig:robust}b). The multi-view and 3D first-read heads find 11 and 6 omissions with any pair except the original C/D.
+The candidates that determine the threshold are unusual. Among the 45,541 candidates on C/D-negative calibration scans, only 74 lie near a contour drawn by just one of the reference readers C and D. Nevertheless, all three sampled maxima around the threshold carry this flag, as do both maxima that trigger alerts on C/D-negative test patients, and both of the latter match official LUNA16 targets. This concentration motivates the analysis of the negative pool in the next section.
+
+\section{Effect of the Calibration Reference}
+\label{sec:tail}
+
+\subsection{Threshold displacement}
+
+Excluding scans with an official consensus nodule removes 14 of the \PCal{} negative calibration patients and leaves \UCal{}. Three of the six largest maxima of the selected detector belong to excluded patients, and each of them matches an official nodule in 3D (Fig.~\ref{fig:tail}a). The original threshold is the 62nd score, a logit of \PairCutoffP{}, whereas the new threshold is the 49th of 53 scores, a logit of \PairCutoffU{} that ranked 55th in the original pool, a drop of \PairDrop{} ranks. Removing 14 patients at random, with the same number per calibration subset, moves the threshold by a median of \PairRobustMedian{} ranks and by at most \PairControlHi{} ranks in 95\% of the draws. The displacement is therefore driven by which patients are removed, not by the reduced pool size.
+
+At the lower threshold, the same scores recover \PairHitsU{} of the 42 omissions instead of \PairHitsP{} (Fig.~\ref{fig:tail}b), and five of the ten additional detections were already ranked above every non-target candidate in their scan. Alerts on the same \UTest{} test patients increase from \PairAlertsP{} to \PairAlertsU{} (Fig.~\ref{fig:tail}c), which is consistent with the nominal rate of 10\%.
+
+\subsection{Robustness}
+
+We repeated the replay for all \NHeadRows{} fitted configurations, which yield \NHeads{} distinct score vectors over hand-crafted, multi-view and 3D features. The threshold falls for \LowerHeads{} of them, by a median of \MedianDrop{} ranks, and for \PastBand{} the drop exceeds the 95\% range of random removal. Since these score vectors share patients and include correlated training variants, the count indicates the breadth of the effect rather than independent replications.
+
+Fig.~\ref{fig:robust}a and Tab.~\ref{tab:reference} detail eight representative detectors. The thresholds of the descriptor heads move by two ranks, within the random range, and both heads retain their two omission detections. In contrast, every learned head moves by six or seven ranks, outside the random range. A lower threshold produces additional detections only when the representation places targets between the two thresholds: the 3D first-read and full-reference heads gain 7 and 9 omissions, respectively, but the mark IPW head gains only 3. Changing the reader pair that defines the negatives yields between one and five detections for the selected detector, with at most one alert among the \RoleTest{} patients that are negative under every pair and under the official list (Fig.~\ref{fig:robust}b). The multi-view and 3D first-read heads detect 11 and 6 omissions, respectively, with every pair except the original C/D.
 
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3pt}
-\caption{\textbf{Same scores, two negative pools.} Each cell gives the count under the C/D cutoff $\to$ the count after excluding official-positive patients. Omit.: of 42 omissions; All: of 276 targets; Alert: of 90 common-negative test patients. Drop: cutoff drop in ranks of the original pool.}
+\caption{\textbf{Fixed scores under two negative pools.} Each cell gives the count under the C/D cutoff $\to$ the count after excluding official-positive patients. Omit.: of 42 omissions; All: of 276 targets; Alert: of 90 common-negative test patients. Drop: cutoff drop in ranks of the original pool.}
 \label{tab:reference}
 \input{tables/reference_anchor}
 \end{table}
 
-\subsection{The reference changes the method comparison}
+\subsection{Effect on the method comparison}
 
-Over the six matched draws, excluding official positives raises the selected method's omission recall by \PairChange{} points \PairChangeCI{}. Its difference to mark IPW moves from $\PairRelativeP$ to $+\PairRelativeU$ points \PairRelativeUCI{}, a shift of \ReferenceInteraction{} points \ReferenceInteractionCI{} (Fig.~\ref{fig:effects}b). The same reversal appears against mark stratification with the same training ($-4.4$ to $+4.4$), while the gap to first-read training stays negative. All-target recall gains grow under the new pool (Fig.~\ref{fig:effects}c), and alert differences stay within about two points (Fig.~\ref{fig:effects}d), with realized alerts of 7.2\% for paired tail and 6.1\% for mark IPW. The primary conclusion of Sec.~\ref{sec:locked} thus depends on a reference choice made for the negative pool, not on the scores.
+Averaged over the six matched draws, excluding official positives raises the omission recall of the selected method by \PairChange{} points \PairChangeCI{}. Its difference to mark IPW moves from $\PairRelativeP$ to $+\PairRelativeU$ points \PairRelativeUCI{}, a shift of \ReferenceInteraction{} points \ReferenceInteractionCI{} (Fig.~\ref{fig:effects}b). The same reversal occurs against mark stratification with the same estimator ($-4.4$ to $+4.4$ points), whereas the gap to first-read training remains negative. The gains in all-target recall increase under the new pool (Fig.~\ref{fig:effects}c), and the alert differences stay within about two points (Fig.~\ref{fig:effects}d), with realized alert rates of 7.2\% for paired-tail sampling and 6.1\% for mark IPW. The primary conclusion of Sec.~\ref{sec:locked} thus hinges on how the negative pool is defined rather than on the scores themselves.
 
 \begin{figure}[t]
 \centering
@@ -97,4 +109,5 @@ Over the six matched draws, excluding official positives raises the selected met
 \label{fig:ct}
 \end{figure}
 
-Fig.~\ref{fig:ct} links the ranks to images. A consensus-positive maximum (b) leaves the negative pool with its score unchanged. A test omission (c) then crosses the lower cutoff with the same image, location and score. Others (d) remain far below both cutoffs, which is why ordering and calibration need separate measurements.
+\paragraph{Qualitative examples.}
+Fig.~\ref{fig:ct} relates these ranks to images. A consensus-positive maximum, shown in (b), leaves the negative pool with its score unchanged. A test omission, shown in (c), then exceeds the lower threshold with the same image, location and score. Other omissions, such as (d), remain far below both thresholds, which illustrates why ranking and calibration need to be assessed separately.

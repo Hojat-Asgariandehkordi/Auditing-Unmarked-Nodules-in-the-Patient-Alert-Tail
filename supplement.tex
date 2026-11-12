@@ -1,6 +1,7 @@
 \documentclass[10pt,twocolumn,letterpaper]{article}
 \usepackage[review]{cvpr}
 \usepackage{amsmath,amssymb,booktabs,graphicx,placeins}
+\renewcommand{\thesection}{\Alph{section}}
 \definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
 \usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
 \def\confName{CVPR}
@@ -14,9 +15,13 @@ Supplementary Material}
 \begin{document}
 \maketitle
 
-\section{Release, provenance and target geometry}
+This supplement provides details on the dataset and reference construction (Sec.~\ref{sec:s-data}), the representations and optimization (Sec.~\ref{sec:s-model}), the audit design and estimators (Sec.~\ref{sec:s-audit}), the evaluation protocol and additional results (Sec.~\ref{sec:s-eval}), the calibration reference analysis (Sec.~\ref{sec:s-ref}), and a simulation study of the estimator (Sec.~\ref{sec:s-sim}).
 
-We indexed all 888 official LUNA16 series and verified each MetaImage header and raw volume against the corresponding release ZIP member's CRC and byte count. We validated Series Instance UID to TCIA patient links for the full inventory. Official subset counts are 89 each for subsets 0--7 and 88 each for 8--9. TCIA identity reveals one cross-subset repeat in subsets 2 and 6. We keep the earlier series. Two other scans in subset 2 have eight and three reading sessions, respectively, and are excluded. The remaining 885 series represent distinct patients (Tab.~\ref{tab:cohort}). Final test coverage is 274/276 targets, 42/42 observed omissions and 150/151 cap omissions. All official nodule annotations linked to at least one of the four released reader sessions under the geometry check on this cohort.
+\section{Dataset and Reference Construction}
+\label{sec:s-data}
+
+\paragraph{Cohort.}
+We indexed all 888 LUNA16 series and verified each MetaImage header and raw volume against the CRC checksum and byte count of the corresponding member of the release archive. Series Instance UIDs were linked to TCIA patient identifiers for the full inventory. The official subsets contain 89 scans each for subsets 0--7 and 88 each for subsets 8 and 9. The TCIA identifiers reveal one patient who appears in both subset 2 and subset 6, of whom we keep the earlier series, and two further scans in subset 2 have eight and three reading sessions, respectively, and are excluded. The remaining 885 series correspond to distinct patients (Tab.~\ref{tab:cohort}). On the test set, the candidate roster covers 274 of the 276 targets, all 42 observed omissions and 150 of the 151 omissions imposed by the bookmark cap. Every official nodule annotation is linked to at least one of the four released reading sessions under our geometric matching.
 
 \begin{table}[t]
 \centering\small
@@ -25,66 +30,72 @@ We indexed all 888 official LUNA16 series and verified each MetaImage header and
 \input{tables/cohort}
 \end{table}
 
-The V2 false-positive reduction roster extends the original merged candidate set with outputs from ETROCAD and M5LCADThreshold0.3 \cite{setio2017,luna16v2}. Components were developed using multiple sources including LIDC-IDRI and, for LargeCAD, the LUNA16 source dataset. Some full CAD submissions used LUNA16 cross-validation. Exact per-series development exposure of each V2 coordinate is unavailable. We discard the supplied class column and use identical coordinates in all arms. The upstream proposal set conditions both coverage and the negative tail. Official FROC uses a different target definition and ignores some non-target marks. Our counts use the operational reference in the main paper.
+\paragraph{Candidate roster.}
+The V2 false-positive reduction roster extends the original merged candidate set with the outputs of ETROCAD and M5LCADThreshold0.3~\cite{setio2017,luna16v2}. Its components were developed on several sources, including LIDC-IDRI and, in the case of LargeCAD, the LUNA16 source data, and some complete CAD submissions used LUNA16 cross-validation; the development exposure of individual V2 coordinates is not available. We discard the supplied class column and use identical coordinates for all methods. The upstream proposals therefore condition both target coverage and the negative tail of the score distribution. Note also that the official FROC evaluation uses a different target definition and ignores some non-target marks, whereas all our counts follow the reference defined in the main paper.
 
-For each released contour mark we use positive-inclusion regions, convert pixel coordinates and the slice's physical position to millimeters and take the bounding-box midpoint. The mark size is the largest axis-aligned in-plane extent across slices. For two mark sets, we use one-to-one minimum normalized-distance assignment subject to a distance at most $\max(3\,\mathrm{mm},(d_1+d_2)/4)$, prioritizing match count. The mean center and diameter of each linked C/D pair define a target. A proposal links to the closest target within one normalized radius where the scale is $\max(3\,\mathrm{mm},d/2)$. A target's omission status uses an independent one-to-one link with the first weak read. The signed spacing and origin in the MetaImage header determine the correspondence. The original roles and matching rules are shared across revisions. No missing weak streams occur after requiring four sessions in this benchmark. The discriminative auxiliary still encodes availability explicitly.
+\paragraph{Target geometry.}
+For each released contour we use the positive-inclusion regions, convert pixel coordinates and slice positions to millimetres, and take the midpoint of the bounding box as the centre of the mark. Its size is the largest axis-aligned in-plane extent across slices. Two sets of marks are matched by a one-to-one assignment that minimizes the normalized distance, subject to a maximum distance of $\max(3\,\mathrm{mm},(d_1+d_2)/4)$, while maximizing the number of matches. Each matched C/D pair defines a target whose centre and diameter are the means of the two marks. A candidate is assigned to the closest target within one normalized radius, using the scale $\max(3\,\mathrm{mm},d/2)$. The omission status of a target is determined by a separate one-to-one matching against the marks of the first weak reader. The signed spacing and origin in the MetaImage header define the correspondence between voxel and world coordinates. The roles and matching rules are identical in all experiments. After requiring four reading sessions, no weak read is missing in this cohort, although the discriminative auxiliary still encodes availability explicitly.
 
-An unmatched proposal is \emph{disputed} if it links to an isolated contour marked by only one reference role. The released final LIDC reader records follow an unblinded phase \cite{armato2011}. An isolated contour signals disagreement in the operational reference. No independent diagnostic adjudication of those candidates was collected. A separate patient-level inventory check found no previously unexposed official positive nodules in subsets 6--9 under its definition of exposure. The present weights and heads were developed without scores from subsets 2 and 6--9. We describe the evaluation as retrospective and locked.
+\paragraph{Disputed candidates.}
+We call an unmatched candidate \emph{disputed} if it lies near an isolated contour drawn by only one of the two reference readers. The released LIDC reader records are the result of an unblinded second phase~\cite{armato2011}, so an isolated contour indicates disagreement under our operational reference rather than a confirmed finding, and no independent diagnostic adjudication of these candidates was performed. A separate patient-level check found no official positive nodule in subsets 6--9 that had not been exposed under its definition of exposure. All weights and heads were developed without access to scores on subsets 2 and 6--9, and we therefore describe the evaluation as a locked retrospective analysis.
 
-\section{Representation and optimization}
+\section{Representations and Optimization}
+\label{sec:s-model}
 
-\paragraph{Handcrafted features.}
-Around each candidate we interpolate a $13^3$ grid at 1.5\,mm spacing, clip to $[-1100,400]$ HU and scale by 1000. Four radial shells supply mean, standard deviation and the fraction above $-300$ HU. Four scales of Gaussian/Hessian features supply a smoothed intensity, three eigenvalues and a curvature roundness ratio \cite{li2003}. This yields 32 descriptors.
+\paragraph{Hand-crafted features.}
+Around each candidate, we interpolate a $13^3$ grid with 1.5\,mm spacing, clip intensities to $[-1100,400]$\,HU and divide by 1000. Four radial shells contribute the mean, the standard deviation and the fraction of voxels above $-300$\,HU, and Gaussian and Hessian filters at four scales contribute a smoothed intensity, the three Hessian eigenvalues and a curvature-based roundness ratio~\cite{li2003}, giving 32 descriptors in total.
 
 \paragraph{Patch encoder.}
-The selected 3D network receives a $24^3$ crop on a physical 1\,mm grid. We clip to $[-1050,400]$ HU, quantize to 8-bit storage and scale to $[-1,1]$. Two convolution blocks at each width 16, 32 and 48 use $3^3$ kernels, batch normalization and SiLU. Pooling by two follows the first two widths. We concatenate global average pooling and a central $4^3$ pooled region, then apply a 32-channel linear map, layer normalization and SiLU. A weak-mark linear readout trains the embedding. At export we average the embedding of the original patch and its separate flips in the two in-plane axes.
+The 3D network receives a $24^3$ crop resampled to an isotropic 1\,mm grid, with intensities clipped to $[-1050,400]$\,HU, stored with 8-bit precision and scaled to $[-1,1]$. It consists of two convolutional blocks at each of the widths 16, 32 and 48, each with $3^3$ kernels, batch normalization and SiLU activations, and a factor-two pooling after the first two widths. The output concatenates global average pooling with average pooling over the central $4^3$ region, followed by a linear projection to 32 channels, layer normalization and SiLU. During training, a linear readout predicts the weak marks. At inference, we average the embeddings of the original patch and of its flips along each of the two in-plane axes.
 
-The encoder fit uses 267 unique patients in subsets 0, 1 and 3 and reads only the arm's first-role marks. No pretrained weights or reference labels enter this fit. Each epoch uses 72 minibatches of 192 proposals, with 32 marked and 160 unmarked samples. After epochs 4, 10 and 16 we refresh the hard pool from the highest 2.5\% of unmarked scores. Forty-eight unmarked draws per batch use that pool, and the rest use the full unmarked set. We use reflections, axis swaps, affine HU jitter, smoothed binary labels 0.01/0.99 and AdamW with a cosine schedule from $1.5{\times}10^{-3}$ to $1.5{\times}10^{-4}$. The epoch-16 checkpoints are frozen after a 24-epoch development schedule. The fitted head receives the standardized 32-dimensional embedding. The two arms have separate weights because the cap drops first-role marks during encoder fit.
+The encoder is trained on 267 patients from subsets 0, 1 and 3, using only the marks of the first weak reader, without pretrained weights and without any reference label. Each epoch comprises 72 minibatches of 192 candidates, 32 marked and 160 unmarked. After epochs 4, 10 and 16, we refresh a pool of hard negatives from the top 2.5\% of unmarked scores, from which 48 of the unmarked samples in each batch are drawn, while the remainder are drawn from all unmarked candidates. We use reflections, axis permutations, affine intensity jitter, label smoothing to $0.01/0.99$ and AdamW with a cosine schedule from $1.5{\times}10^{-3}$ to $1.5{\times}10^{-4}$. The epoch-16 checkpoint of a 24-epoch development schedule is frozen, and the linear heads receive its standardized 32-dimensional embedding. The bookmark-cap setting uses a separately trained encoder, since the cap removes first-reader marks during encoder training.
 
-We first tested a multiscale 2.5D model with twelve orthogonal slices at two fields of view, across three saved epochs and two ridge values. It improved candidate separation but missed the all-target localization gate. The bounded repair compared rank-weighted heads and one 3D fit per arm. The frozen gate required a ten-point improvement in all-target recall and an improvement in within-scan target separation, with negative alerts within five points. The unweighted 3D model passed. The development ledger retains the two ridge values, all diagnostic cutoffs and both patch architectures.
+\paragraph{Model selection.}
+We first evaluated a multi-scale 2.5D model with twelve orthogonal slices at two fields of view, over three saved epochs and two ridge values. It improved the separation of candidates but did not meet our development criterion for all-target localization. We then compared rank-weighted heads with one 3D model per setting, requiring an improvement of ten points in all-target recall and an improvement in within-scan target separation, with negative alerts within five points. The unweighted 3D model satisfied these criteria and was retained.
 
-\paragraph{Common head.}
-We standardize features on fit candidates and use a linear logistic logit with coefficient ridge $10^{-4}$ and intercept penalty $10^{-6}$. Optimizing an augmented loss uses its exact linear label moment. Loss curvature with respect to the score is independent of the target, including for signed values. Positive ridge bounds the optimization. IPW uses logistic loss on revealed examples weighted by $1/\pi_i$ and normalized by the sum of these weights. The nnPU baseline treats A marks as positives and uses the Horvitz--Thompson prior estimate, clipped to a positive interior value. We optimize its convex nonnegative risk. The EM image and reader heads use the working two-reader likelihood. Starting from the IPW image head, we alternate 16 updates with audited labels clamped. The positive-reference mark probability has a logistic head with ridge 0.02 for each reader. Its negative-reference rate is a smoothed constant.
+\paragraph{Linear heads.}
+Features are standardized on the fitting candidates, and each head is a linear logistic model with a ridge penalty of $10^{-4}$ on the coefficients and $10^{-6}$ on the intercept. Since the logistic loss is linear in its target, optimizing the augmented loss uses the exact first moment of the corrected labels, and the curvature of the loss with respect to the score does not depend on the target, even when the corrected target is negative; the ridge penalty keeps the problem bounded. IPW applies the logistic loss to audited candidates with weights $1/\pi_i$, normalized by their sum. The nnPU baseline treats the marks of reader A as positives, uses the Horvitz--Thompson estimate of the class prior clipped to the interior of $(0,1)$, and minimizes the convex nonnegative risk. The EM heads use a two-reader working likelihood: starting from the IPW image head, they alternate 16 updates with audited labels held fixed, model the probability of a mark given a reference positive with a logistic head (ridge 0.02) for each reader, and use a smoothed constant for the mark rate given a reference negative.
 
-\section{Sampling and cross-fitting details}
+\section{Audit Design and Estimation}
+\label{sec:s-audit}
 
-\paragraph{Weak evidence for allocation.}
-Within each of three training patient folds, predict the union of the weak marks using a logistic image model fit on the other folds. Let $p_i$ be that prediction and $m_i$ the number of observed marks. Our proxy $u_i$ is $0.35p_i$ for $m_i=0$, $0.55+0.35p_i$ for $m_i=1$, and $0.92+0.06p_i$ for $m_i=2$. These fixed coefficients downweight the uncertainty of clear agreements and elevate informative disagreements. They define a design heuristic. The use of both a rank within a scan and a common absolute cutoff retains candidates that can affect an extreme scan score even when scan-level intensity distributions differ. The design is frozen before any reference reveal. For $\pi_i$ away from a box constraint, differentiating the surrogate objective plus the budget multiplier gives $\pi_i=c\,h_i\sqrt{v_i}$. The same argument gives the clipped solution with the stated floors, cap and truncated $h_i$.
+\paragraph{Weak evidence.}
+Within each of three folds of training patients, an image-based logistic model fitted on the other folds predicts whether either weak reader marked a candidate, giving the probability $p_i$ used in Eq.~(2) of the main paper. Its coefficients down-weight concordant marks and emphasize disagreement, and they were fixed before any reference label was revealed. Combining the within-scan rank with an absolute threshold in Eq.~(1) retains candidates that can determine an extreme scan score even when the intensity distributions of different scans vary. For $\pi_i$ in the interior of the box constraints, differentiating the surrogate objective with the budget multiplier yields $\pi_i=c\,\bar h_i\sqrt{v_i}$, and the same argument gives the clipped solution under the floors, the cap and the truncated leverage.
 
-\paragraph{Conditional loss.}
-Let $\mathcal F_{-f}$ contain the pre-audit data and all training audit uniforms outside patient fold $f$. Conditional on $\mathcal F_{-f}$ and the finite-pool $Y$, the independent uniforms in fold $f$ leave $\Pr(R_i=1)=\pi_i$ and $q_i$ is fixed. For any fixed $g$ and pre-audit weights $a_i$,
+\paragraph{Unbiasedness of the training loss.}
+Let $\mathcal F_{-f}$ contain the data available before auditing together with the audit draws of all patient folds other than $f$. Conditional on $\mathcal F_{-f}$ and on the labels $Y$ of the finite pool, the independent draws in fold $f$ satisfy $\Pr(R_i=1)=\pi_i$, while the auxiliary $q_i$ is fixed. Hence, for any fixed head $g$ and any weights $a_i$ determined before auditing,
 \[
  \mathbb E_R\!\left[\frac{\sum_i a_i\ell(z_i,g_i)}{\sum_i a_i}\right]
  =\frac{\sum_i a_i\ell(Y_i,g_i)}{\sum_i a_i}.
 \]
-This includes the unit-weight and tail-weighted objectives. The weighted estimand gives extra mass to candidates ranked near the frozen tail. It is independent of the choice of inclusion probabilities.
+This covers both the unit-weight objective and the tail-weighted objective, which gives additional weight to candidates ranked near the frozen tail; the weighted estimand does not depend on the inclusion probabilities.
 
-\paragraph{Power.}
-Write $\bar X_i$ for the standardized design vector with intercept. We select $\lambda$ by minimizing an estimate of
-$\sum_i(1-\pi_i)(Y_i-\lambda q_i)^2\|\bar X_i\|^2/\pi_i$.
-For each outer fold, we predict the discriminative auxiliary on the other folds using an inner split and estimate this criterion using audited labels and an additional factor of $1/\pi_i$. The quadratic minimizer is clipped to $[0,1]$. The held fold uses the scaled prediction from a full auxiliary fit on the other folds. This is a fixed-fold scalar variance-tuning comparator inspired by prediction-powered training \cite{ppssl2025}. It uses the same labels and head as the untuned discriminative fit.
+\paragraph{Power tuning.}
+Let $\bar X_i$ denote the standardized design vector including the intercept. We scale the auxiliary by a factor $\lambda$ chosen to minimize an estimate of $\sum_i(1-\pi_i)(Y_i-\lambda q_i)^2\|\bar X_i\|^2/\pi_i$. For each outer fold, the auxiliary is predicted on the remaining folds through an inner split, and the criterion is estimated from the audited labels with an additional factor $1/\pi_i$; the minimizer of this quadratic is clipped to $[0,1]$. The held-out fold then uses the scaled prediction of an auxiliary fitted on all other folds. This fixed-fold, scalar variance tuning follows prediction-powered training~\cite{ppssl2025} and uses the same labels and head as the untuned estimator.
 
-\paragraph{Audit reach and variability.}
-For reference target $j$ with eligible proposal indices $\mathcal I_j$, its expected audit exposure is $1-\prod_{i\in\mathcal I_j}(1-\pi_i)$. Sum over targets or the omission subgroup. The empty product is one. This calculation uses the retrospective full fit reference only for evaluation. It estimates reach in the training pool. The gradient ledger records squared residuals, audited signed residual extremes and the diagonal contributions to design variance of the label moment. Conditional on a fold's auxiliary fit, its residual terms are independent under the design. The reported sum of conditional diagonal terms does not include between-fold covariances from fitting auxiliaries on shared labels. We also record realized gradient errors across draws and the evaluation-only Brier error of auxiliaries by weak-mark pattern.
+\paragraph{Reach and gradient variance.}
+For a target $j$ with covering candidates $\mathcal I_j$, the probability of being audited is $1-\prod_{i\in\mathcal I_j}(1-\pi_i)$, with an empty product equal to one, and summing over targets or over omissions gives the expected reach. This computation uses the reference labels of the training pool for evaluation only. We additionally record the squared residuals, the extremes of the audited signed residuals and the diagonal design-variance contributions of the corrected label moment. Conditional on the auxiliary fit of a fold, its residual terms are independent under the design; the reported sum of conditional diagonal terms ignores covariances between folds that arise from fitting the auxiliaries on shared labels. We also measure the realized gradient error across draws and the Brier error of each auxiliary by weak-mark pattern (Tab.~\ref{tab:aux}).
 
 \begin{center}
 \small
 \captionsetup{hypcap=false}
-\captionof{table}{\textbf{Evaluation-only auxiliary error.} Mean squared residual ($\times 10^3$) by test proposal mark pattern at the learned, mark-stratified anchor. Ref. is the observed candidate prevalence.}
+\captionof{table}{\textbf{Auxiliary error by weak-mark pattern.} Mean squared residual ($\times 10^3$) of each auxiliary on test candidates at the anchor draw with mark-stratified audits; Ref.\ is the reference-positive rate (\%). Computed for evaluation only.}
 \label{tab:aux}
 \input{tables/aux}
 \end{center}
 
-\section{Prespecified comparisons and operating points}
+\section{Evaluation Protocol and Additional Results}
+\label{sec:s-eval}
 
-The final confirmatory status is locked retrospective re-evaluation. The primary half-budget contrast was selected using subsets 4 and 5 for calibration and evaluation, respectively. In development the selected method's six-draw omission recall was 23.3\%, versus 18.3\% for base-budget mark-stratified IPW at 8.6\% mean alerts each. nnPU with an audited class prior had 28.3\% omission recall across its three development draws and was kept as a separate comparator. For a gain claim the locked rule required +10 pp versus first read and +5 pp versus the strongest simple audited comparator, positive paired lower limits, and positive effects against the audited comparator in at least four of six draws. The selected efficiency route required at least a 25\% candidate saving and lower paired limits above or equal to $-5$ pp for both recall measures. Both routes required at most 13\% realized negative alerts, at most +3 pp relative to the audited comparator and at most +0.20 FP/scan. We report the selected route regardless of outcome.
+\paragraph{Prespecified comparisons.}
+The primary half-budget comparison was selected using subset 4 for calibration and subset 5 for evaluation. On these development subsets, the selected method achieved a six-draw omission recall of 23.3\%, compared with 18.3\% for base-budget mark-stratified IPW, both at a mean alert rate of 8.6\%. nnPU with an audited class prior reached 28.3\% over its three development draws and was retained as a separate baseline. A claim of superiority required gains of 10 points over first-read training and 5 points over the strongest simple audited baseline, positive lower confidence limits, and a positive effect against the audited baseline in at least four of the six draws. A claim of efficiency required a saving of at least 25\% of the audited candidates and lower confidence limits of at least $-5$ points for both recall measures. Both claims further required a realized negative alert rate of at most 13\%, at most 3 points above the audited baseline, and at most 0.20 additional FP/scan. We report the selected comparison irrespective of its outcome.
 
-We resample test patients in pairs 4,000 times with fixed weights across the six matched audit seeds for the averaged effect. The anchor interval conditions on one draw and the pooled calibration set. For the separate calibration sensitivity we jointly resample the 67 negative patients 300 times with replacement, then recompute each strict cutoff. The audit seeds and calibration resamples use the same test cases. The two-stage matched-alert check uses negative patients from subset 2 to obtain a grid of thresholds and subset 6 to select the highest attained alert rate at or below 10\%, preferring the higher cutoff when tied. This check is separate from the pooled conformal guarantee.
-
+\paragraph{Confidence intervals.}
+Paired intervals resample test patients 4,000 times with fixed weights across the six matched audit draws. Intervals for a single draw condition on that draw and on the pooled calibration set. To assess calibration variability, we resample the 67 negative calibration patients 300 times with replacement and recompute each strict threshold, using the same test patients throughout. The matched-alert analysis uses the negative patients of subset 2 to obtain a grid of thresholds and those of subset 6 to select the highest attained alert rate not exceeding 10\%, preferring the higher threshold in case of ties. This analysis is separate from the pooled conformal guarantee.
 
 \begin{table*}[t]
 \centering\small
-\caption{\textbf{Observed-read supervision factorial at the anchor.} Cells report detections among 42 observed omissions and 276 total targets, followed by alerts among 105 C/D-negative test patients. Audited methods share the base mark-stratified draw.}
+\caption{\textbf{Supervision and representation at the anchor draw.} Cells report detections among 42 observed omissions and 276 total targets, followed by alerts among 105 C/D-negative test patients. All audited methods use the same base-budget mark-stratified draw.}
 \label{tab:observed}
 \input{tables/observed}
 \end{table*}
@@ -92,14 +103,14 @@ We resample test patients in pairs 4,000 times with fixed weights across the six
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{locked_performance}
-\caption{\textbf{Locked operating points and paired effects.} (a)~Every point uses a calibration-derived cutoff; open markers denote nominal $\alpha=0.10$. (b)~Paired-tail omission recall minus each comparator with 95\% patient-bootstrap intervals (Tab.~\ref{tab:contrasts}). Filled: nominal cutoff; open: calibration-only matched-alert check. The shaded region lies beyond the $-5$-point margin. Curve points were recovered from the original figure (Sec.~\ref{sec:recovered}).}
+\caption{\textbf{Locked operating points and paired effects.} (a)~Every point uses a calibration-derived cutoff; open markers denote nominal $\alpha=0.10$. (b)~Paired-tail omission recall minus each comparator with 95\% patient-bootstrap intervals (Tab.~\ref{tab:contrasts}). Filled: nominal cutoff; open: calibration-only matched-alert check. The shaded region lies beyond the $-5$-point margin.}
 \label{fig:locked}
 \end{figure*}
 
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Bookmark cap factorial.} Each cell reports anchor detections among 151 imposed omissions, all 276 targets, and alerts among 105 reference-negative patients. The cap arm's encoder trains on the cap's first-read labels.}
+\caption{\textbf{Controlled bookmark cap.} Each cell reports detections at the anchor draw among the 151 imposed omissions and all 276 targets, followed by alerts among 105 reference-negative patients. The encoder in this setting is trained on the capped first-read labels.}
 \label{tab:cap}
 \input{tables/bookmark}
 \end{table}
@@ -113,7 +124,7 @@ We resample test patients in pairs 4,000 times with fixed weights across the six
 
 \begin{table*}[!t]
 \centering\small
-\caption{\textbf{Audit allocation and audit workload.} Mean across matched repeats. Each row shares candidate reveals across eligible heads. Lesions counts distinct audited reference targets. Omit.\ denotes distinct audited observed omissions. The expected reach uses all fitting targets and their audit probabilities.}
+\caption{\textbf{Audit allocation and workload,} averaged over the matched draws. Candidates: audited candidates; Pos.\ cand.: audited reference-positive candidates; Lesions and Omit.: distinct audited targets and omissions; Patients: patients with at least one audit; Exp.: expected reach (Eq.~4 of the main paper) over all training omissions and over the 35 omissions without any weak mark.}
 \label{tab:costs}
 \input{tables/costs}
 \end{table*}
@@ -123,55 +134,53 @@ We resample test patients in pairs 4,000 times with fixed weights across the six
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{variability}
-\caption{\textbf{Audit, calibration and test-patient variation answer different questions.} Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and cutoffs fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central 95\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients. Values were recovered from the original figure (Sec.~\ref{sec:recovered}).}
+\caption{\textbf{Audit, calibration and test-patient variation answer different questions.} Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and cutoffs fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central 95\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients.}
 \label{fig:variation}
 \end{figure*}
 
-\section{Replaying Reference Membership at Fixed Scores}
+\section{Calibration Reference Analysis}
+\label{sec:s-ref}
 
-\paragraph{Two released references.}
-The C/D pool contains patients without a concordant contour under the original geometry. The augmented pool also requires no entry in the official LUNA16 annotation file. Candidate matching to official marks for visualization uses the same proposal tolerance, the greater of 3\,mm and half the official diameter. Patient eligibility uses the presence of any official target on that scan, regardless of whether a proposal matches it. Changing membership preserves the original localization targets. This allows a comparison of thresholds without changing the recall denominator. Under both cutoffs the alert denominator in the reference analysis includes only the 90 common-negative test patients.
+\paragraph{Negative pools.}
+The C/D pool contains the patients without a concordant C/D contour under our geometry, and the augmented pool additionally requires that the patient has no entry in the official LUNA16 annotation file. For visualization, candidates are matched to official nodules with the same tolerance as for proposals, namely the greater of 3\,mm and half the official diameter. Patient eligibility, by contrast, depends only on the presence of an official nodule in the scan, whether or not a candidate matches it. Since changing the negative pool leaves the localization targets unchanged, thresholds can be compared without altering the recall denominator, and under both thresholds the alert denominator consists of the 90 test patients that are negative under both definitions.
 
 \begin{table*}[t]
 \centering\small
-\caption{\textbf{Reference effects by feature family.} Each row summarizes distinct fixed score vectors. Past size band counts rank displacements above the upper end of the central 95\% random-deletion band. More omissions counts heads with strictly more calls under the augmented cutoff.}
+\caption{\textbf{Reference effects by feature family.} Each row summarizes distinct fixed score vectors. Lower cutoff: score vectors whose threshold decreases; Past size band: displacements beyond the central 95\% of random removals of the same size; More omissions: score vectors with strictly more omission detections under the lower threshold.}
 \label{tab:families}
 \input{tables/families}
 \end{table*}
 
 \begin{table*}[t]
 \centering\small
-\caption{\textbf{Paired-tail differences under each calibration reference.} Six matched fits are averaged within each patient. Both references use the same original targets and 90 common negatives in evaluation. Differences and conditional patient intervals are in percentage points.}
+\caption{\textbf{Paired-tail differences under each calibration reference.} The six matched fits are averaged within each patient. Both negative pools are evaluated on the same original targets and the 90 common negative test patients. Differences and patient-bootstrap intervals are in percentage points.}
 \label{tab:alt}
 \input{tables/reference_effects}
 \end{table*}
 
 \begin{table}[t]
 \centering\small
-\caption{\textbf{Reader roles at the anchor.} Cells give original omission calls out of 42 and alerts among \RoleTest{} common negatives.}
+\caption{\textbf{Calibration on each reader pair} at the anchor draw. Cal.\ neg.: negative calibration patients under the pair; cells give omission detections out of 42 and alerts among the \RoleTest{} common negative test patients.}
 \label{tab:roles}
 \input{tables/roles}
 \end{table}
 
-\paragraph{Fit coverage and the extra architecture.}
-We recompute the original cutoffs and all recorded C/D counts at $\alpha=0.10$ before evaluating the augmented membership for every locked observed-arm fit. As a separate architecture check, we use the epoch-16 2.5D checkpoint from the first development screen. Its inputs are twelve planes centered on the candidate, with two physical fields of view. It uses two 24-channel blocks, two 40-channel blocks, and two 64-channel blocks with two intervening pooling operations. Its embedding concatenates center and global means before the 32-channel projection. At export it averages the patch and its separate in-plane flips. We freeze the checkpoint and fit the first-read and full-reference linear heads on the original fitting set at the common ridge. We use the epoch-16 2.5D checkpoint here to test reference sensitivity in a second learned representation. It extends the reference stress test, with the same patient data and proposal source. Identical candidate score vectors are fingerprinted for the descriptive head summary. These fits share the same patient cohort.
+\paragraph{Coverage of fitted heads and an additional architecture.}
+For every locked fit, we first reproduce the original thresholds and all C/D counts at $\alpha=0.10$ and then evaluate the augmented pool. To test reference sensitivity in a second learned representation, we additionally use the epoch-16 checkpoint of the 2.5D model from the first development screen. Its input consists of twelve planes centred on the candidate at two physical fields of view, processed by two blocks each of 24, 40 and 64 channels with two intermediate pooling operations; the embedding concatenates the central and global means before a 32-channel projection, and at inference it is averaged over the patch and its in-plane flips. With this checkpoint frozen, we fit first-read and full-reference linear heads on the original fitting set with the common ridge penalty. These fits use the same patients and candidate source as the main experiments, and identical score vectors are merged when counting distinct detectors.
 
-\paragraph{Matched random deletion.}
-Use one random subset within each of the two original calibration folds, retaining exactly the number that remain under the augmented definition. Repeat 8,192 times with common random draws across the heads. For each deletion take the same 49th order statistic used by the augmented pool. Locate that score in the sorted original pool, with deterministic roster-order tie handling. The random distribution answers how far the cutoff would move if patients were removed uniformly within each fold at the same sample size. The observed displacement uses the same original rank scale. The descriptive tail area in the ledger is the fraction of random displacements at least as large, with a one-draw correction.
+\paragraph{Size-matched random removal.}
+Within each of the two calibration subsets, we draw a random subset of negative patients of the same size as the augmented pool in that subset, and repeat this 8,192 times with common random draws across detectors. For each draw, we take the 49th order statistic, as for the augmented pool, and locate the resulting score in the sorted original pool, breaking ties deterministically by roster order. The resulting distribution describes how far the threshold would move if patients were removed uniformly at random within each subset at the same sample size, and the observed displacement is expressed on the same rank scale. As a descriptive tail area, we report the fraction of random displacements that are at least as large as the observed one, with a one-draw correction.
 
-\paragraph{Alternative pair memberships.}
-Reparse the four LIDC sessions with the original geometry. For each of the six possible unordered pairs, reconstruct pair consensus without scores and verify that C/D reproduces the locked target count on every retained scan. Calibrate on the negatives of each pair and apply the resulting cutoffs to the original target list. The test alert support is the intersection of negatives for the six pairs and the official list, with \RoleTest{} patients. This design isolates sensitivity to reader assignment. Each pair reuses the same unblinded records.
+\paragraph{Alternative reader pairs.}
+We re-parse the four LIDC sessions with the same geometry and, for each of the six unordered reader pairs, reconstruct the pair consensus without using any score, after verifying that the C/D pair reproduces the locked target count on every retained scan. Each pair's negatives are then used for calibration, and the resulting thresholds are applied to the original targets. Test alerts are counted on the \RoleTest{} patients that are negative under all six pairs and under the official list. This analysis isolates the sensitivity to the reader assignment, although every pair reuses the same unblinded records.
 
-\paragraph{Uncertainty and provenance.}
-Compute paired test-patient intervals with 4,000 bootstrap samples after averaging the matched audit fits within each patient. When comparing references, the scores, calibration pools, and cutoffs are held fixed for this bootstrap. The intervals describe variation across test patients under those settings. The blocked random deletion distribution varies only the calibration membership. The reference follow-up was specified after the locked comparison had been scored. The prior training and allocation protocol specifies the locked comparison. The output ledgers include the original-fit metrics replay, reference membership, head fingerprints, cutoff order, random-deletion distribution, alert counts, and target calls. The figures are generated from the measured ledgers and staged CT images.
+\paragraph{Uncertainty.}
+Paired test-patient intervals use 4,000 bootstrap samples after averaging the matched audit fits within each patient. When the two references are compared, the scores, calibration pools and thresholds are held fixed during this bootstrap, so the intervals describe variation across test patients under those settings, whereas the random-removal distribution varies only the calibration membership. The reference analysis was specified after the locked comparison had been scored, whereas the training and allocation protocol defines the locked comparison itself.
 
-\section{Estimator check in simulation}
+\section{Simulation Study of the Estimator}
+\label{sec:s-sim}
 
-A controlled simulation holds a finite synthetic population and its auxiliary fit fixed and varies the audits and dependence between weak readers. The base-budget augmented prevalence estimate reduced RMSE by about 10--12\% versus the Horvitz--Thompson estimate. The estimand is the proportion of positives among first-reader-unmarked proposals. The image-conditioned bookmark intervention and observed-reader CT endpoints above are localization experiments with different estimands.
-
-\section{Figure data provenance}
-\label{sec:recovered}
-All figures were regenerated by the scripts in \texttt{scripts/}; every plotted number is listed in \texttt{scripts/data.py} with its source. Numbers printed in the tables are used directly. Values that appear only in figures (per-draw reach, the calibration maxima near the cutoff, random-removal ranges, reader-pair cells, alert curves and the variability decomposition) were read back from the vector geometry of the earlier figure files and rounded to their natural resolution (counts to integers, omission recall to multiples of $1/42$). Each recovered set reproduces the numbers stated in the text.
+In a controlled simulation, we fix a finite synthetic population and its auxiliary fit and vary the audit draws and the dependence between the two weak readers. The estimand is the proportion of positives among candidates left unmarked by the first reader. At the base budget, the augmented estimate of this proportion reduces the root-mean-square error by about 10--12\% relative to the Horvitz--Thompson estimate. Note that the localization experiments in the main paper and in the bookmark-cap setting target different estimands.
 
 \FloatBarrier
 \section*{LLM Usage Statement}

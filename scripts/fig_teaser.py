@@ -113,7 +113,7 @@ def main():
     fig.text(0.045, 0.93, rf"$\bf{{(a)}}$ Which candidates get a second look? (same budget, {B:.1f} expected audits)",
              fontsize=8.3, ha="left", va="bottom")
     fig.text(0.045, 0.005, "Disc area = audit probability. A, B = weak reader marks. Ring = reference nodule "
-             "(thick: missed by reader A; number = its audit probability). Toy roster, real allocation rules.",
+             "(thick: missed by reader A; number = its audit probability). Synthetic roster; probabilities from Eqs. (1)-(3).",
              fontsize=6.3, color=C["muted"], ha="left", va="bottom")
 
     # ---------------------------------------------------- (b) the cutoff
