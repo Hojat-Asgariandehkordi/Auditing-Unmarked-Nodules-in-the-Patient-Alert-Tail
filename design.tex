@@ -1,0 +1,89 @@
+\section{Design and Estimands}
+\label{sec:design}
+
+Figure~\ref{fig:map} connects the audit design, image-only fitting, and the patient alert rule. These stages measure target exposure, proposal ordering, and calibrated patient alerts, respectively.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{study_map}
+\caption{\textbf{Three stages of omitted-target recovery.} Known-probability audits reveal reference labels on training proposals. The detector scores all proposals using the image alone. Calibration then takes one maximum per reference-negative patient. The reference determines which maxima enter this final step. The symbols illustrate the workflow.}
+\label{fig:map}
+\end{figure*}
+
+\subsection{Marks, targets, and candidates}
+
+Each patient supplies a fixed roster of candidate locations. Candidate $i$ has image features $X_i$ and weak marks $M_{iA},M_{iB}$, each encoded as marked, assessed and unmarked, or unavailable. A separate pair of reader roles, C and D, defines the original target set. Concordant contours in the released nodule category are linked in physical coordinates before any candidate is scored. The reference label $Y_i$ indicates that the proposal falls in an original target's matching region. An \emph{omission} is an original target without a link to A's contour set. This definition precedes proposal matching. A lesion without any eligible proposal still counts in the omission denominator.
+
+For training, the full original reference is available to the retrospective evaluator. Each audited fit receives only labels selected by its reveal mask. The unobserved proposals still contribute image features and weak marks. On evaluation patients the fitted head takes only image features. A consensus read or an audit is therefore part of supervision or evaluation and supplies no feature to the deployed detector.
+
+\subsection{Allocation and target exposure}
+
+We train a first-read image pilot on development patients and freeze its weights and cutoff $t_0$. For pilot score $s_i$ and descending within-scan rank $r_i$, define
+\begin{equation}
+ h_i=\max\!\left\{
+     \exp[-(r_i-1)/6],\
+     \sigma((s_i-t_0+1)/0.7)
+ \right\}.
+ \label{eq:leverage}
+\end{equation}
+The rank term retains proposals that can dominate an individual scan even when its absolute scores are low. The second term retains candidates near or above the development cutoff. Their combination avoids relying exclusively on either a global score or a fixed number of proposals per scan.
+
+The image-tail policy uses this score leverage directly. For paired-tail sampling, we also fit an image model of the union of the weak marks in three patient folds. Its out-of-fold predictions and the observed weak-mark count define a bounded working probability $u_i$. For a union-mark probability $p_i$, the three values of $u_i$ are $0.35p_i$, $0.55+0.35p_i$, and $0.92+0.06p_i$ for zero, one, and two marks. Discordant marks receive more weight than agreement when this proxy implies greater uncertainty. The rule requires only information available before the reference label is revealed.
+
+Let $v_i=\max\{u_i(1-u_i),0.006\}$ and $\bar h_i=\max(h_i,0.002)$. Given a candidate budget $B$, we choose probabilities to reduce the separable variance proxy $\sum_i \bar h_i^2 v_i(1/\pi_i-1)$. Differentiation with a budget multiplier gives
+\begin{equation}
+ \pi_i=\operatorname{clip}(c\bar h_i\sqrt{v_i},\,0.005b,\,0.95),
+ \qquad \sum_i\pi_i=B,
+ \label{eq:sampling}
+\end{equation}
+where $b$ is the budget factor and $c$ enforces the expected count. The image-tail policy sets $v_i$ constant. The original mark-stratified policy uses $(0.02,0.35,0.20)b$ for zero, one, and two marks and sets $B$ for all policies at each budget. Uniform sampling uses $B/N$ on $N$ candidates. Each policy draws independent Bernoulli indicators with these probabilities. Corresponding draws share uniforms across policies and share realized masks across the audited training objectives.
+
+A positive audit count can include several proposals for one nodule. We therefore measure unique target exposure. If $\mathcal I_j$ contains the eligible proposal indices for target $j$, its exposure probability is
+\begin{equation}
+ a_j=1-\prod_{i\in\mathcal I_j}(1-\pi_i).
+ \label{eq:exposure}
+\end{equation}
+The empty product is one. Summing $a_j$ over the fixed training omissions gives the exact expected distinct omissions reached. The same calculation over all candidates in a patient gives the expected number of patients touched. These measures separate spatial yield from candidate and patient workload.
+
+\subsection{Corrected training with audit labels}
+
+Let $R_i$ be the audit indicator and $q_i$ a prediction of the reference label trained outside the proposal's patient fold. We form the target
+\begin{equation}
+ z_i=q_i+\frac{R_i}{\pi_i}(Y_i-q_i).
+ \label{eq:correction}
+\end{equation}
+A discriminative auxiliary uses the image features, mark indicators, an agreement indicator, and availability, with inverse-probability weights on revealed training labels. An image-only auxiliary uses the same revealed labels and image features. The paired EM auxiliary instead uses a working likelihood that factors the two observed marks conditional on $X_i,Y_i$. All three produce an image-only final head. We also compare direct weighted audit training, supervised fits to each weak read, nonnegative PU with an audited prior, and a fit using all original reference labels.
+
+Conditionally on the pre-audit inputs and the out-of-fold fit, independent inclusion in the held fold gives $\mathbb E_R[z_i]=Y_i$. The logit loss $\ell(z,g)=\log(1+e^g)-zg$ is affine in the label. Thus the corrected risk at any fixed head has the full-reference expectation. This property holds for misspecified auxiliaries and for pre-audit weights. A separate ablation uses loss weight $1+9h_i$ and targets the corresponding weighted reference loss.
+
+Signed targets can have large magnitude. The fitted logits use positive ridge on the coefficients and intercept. Conditional on the fitted auxiliary and $Y_i$, the variance in the label term is $(1-\pi_i)(Y_i-q_i)^2/\pi_i$. The power-tuned control replaces $q_i$ with $\lambda q_i$ and fits a bounded $\lambda$ using an estimate of gradient variance outside the held fold. Equation~\eqref{eq:sampling} targets a surrogate for this uncertainty in the alert tail. Detection after minimizing the random loss and calibrating its scores is an empirical endpoint.
+
+\subsection{Patient alert thresholds}
+
+For a fitted score $g$, let $S_j=\max_{i\in j}g(X_i)$ on patient $j$. Given $n$ reference-negative calibration patients, the strict threshold is
+\begin{equation}
+ T_\alpha=S_{(k)},\qquad k=\lceil(n+1)(1-\alpha)\rceil,
+ \label{eq:threshold}
+\end{equation}
+where the order statistic is ascending and the threshold is infinite if $k>n$. Any proposal strictly above $T_\alpha$ triggers a patient alert. With distinct exchangeable maxima from the specified negative population, the marginal exceedance probability is $(n+1-k)/(n+1)$. We count a target once if any eligible proposal crosses the threshold. Excess calls to a target count toward FP/scan in the locked benchmark.
+
+Let $P$ denote patients negative by the C/D reference, and let $U$ denote patients negative both by C/D and by the official LUNA16 consensus. The latter corresponds to the union of positive designations. Put $E=P\setminus U$. The maximum-score distribution under $P$ is the mixture of the distributions under $U$ and $E$, with weights given by their representation in $P$. If $E$ contributes disproportionately large maxima, admitting $E$ can raise the relevant upper quantile. This occurs even when the target scores and their within-scan ranks are unchanged.
+
+In a finite pool, membership also changes the order-statistic index. After $m$ removals, the $k'$th remaining score was between the $k'$th and $(k'+m)$th scores in the original sorted pool. Random removal with the same $m$ gives a control for this rank effect. A displacement beyond that control indicates that the excluded patients were systematically placed in the original ranking. This is an empirical property of the model and reference combination.
+
+\section{Benchmark and Analysis Protocol}
+\label{sec:benchmark}
+
+\paragraph{Data and geometry.}
+We use the official LUNA16 V2 candidate locations and discard the challenge class column \cite{setio2017,luna16v2}. The merged roster contains proposals from CAD systems, some developed on the source LIDC scans. We condition on that roster. Each retained scan has four final LIDC reading sessions. These are unblinded records, and the assigned roles within a scan have access to shared initial marks \cite{armato2011}. A seeded permutation assigns roles A--D. We match C/D contours one-to-one within the greater of 3\,mm and the mean contour radius. Their mean centers and sizes define the original target geometry. The original weak-mark and target matching rules use fixed distance thresholds. The official reference instead requires three of four LIDC readers to agree on a nodule in its inclusion category. The score-fixed analysis uses the official list only to identify additional patients with an official target. Official FROC uses different reference and exclusion rules.
+
+\paragraph{Splits and representations.}
+From 888 official series, we exclude one later scan from a repeated TCIA patient and two with other than four reading sessions. The final fit, calibration and test sets contain 445, 175 and 265 distinct patients. The fit uses subsets 0, 1 and 3--5, calibration uses 2 and 6, and test uses 7--9. Prior analyses had inspected regions of the public held-out scans, so the original locked experiment is retrospective. It freezes the heads, seeds, contrasts, and criteria before scoring the designated calibration and test subsets. The 67 original negative calibration patients set rank 62 at nominal $\alpha=0.10$.
+
+The factorial holds the roster fixed across handcrafted and learned image features. The former uses 32 local intensity and multiscale Hessian descriptors \cite{li2003}. The latter uses a 32-dimensional embedding from a 3D CNN on 24\,mm proposal-centered patches. The encoder is trained from scratch on first-role marks from 267 development-fit patients and frozen before the head comparison. The controlled cap retains the largest first-read mark, and its encoder is trained on the capped labels. The full-reference head uses all training labels with the same frozen features and ridge. The supplement gives the network, coordinate matcher, and development gate.
+
+\paragraph{Locked comparisons.}
+The original primary endpoint is recall on observed first-reader omissions. Development selected half-budget paired-tail allocation with discriminative augmentation against base-budget mark IPW. The locked efficiency criterion requires a saving in candidate audits, lower confidence limits within five points on both recall endpoints, and comparable alerts and FP/scan. We retain first read, nnPU, and equal-budget uniform, mark, and image-tail controls. The factorial uses a common mark-stratified audit draw. Patient intervals resample test patients jointly across heads and across the six matched audit draws. Audit and negative-calibration resampling characterize separate sources of variability. A calibration-only matched-alert check uses thresholds derived on one negative subset and applied to another to select a comparable operating point.
+
+\paragraph{Score-fixed follow-up.}
+After observing the original result and an anchor sensitivity check, we evaluated reference membership for every locked observed-arm fit. Two extra heads reuse the separately trained epoch-16 multi-view checkpoint from the development screen, with the same fitting split and ridge. They use first-read or full-reference supervision and extend the stress test to a second learned architecture. We keep all 276 original test targets and all 42 omissions while comparing cutoffs from $P$ and $U$. Both alert counts in this comparison use the same $U$ test support. We also swap calibration membership across the six unordered pairs of reader roles, with a common test-negative support across all pairs and the official list. These follow-ups share patients with the locked study. The figures and ledgers distinguish the two analyses.

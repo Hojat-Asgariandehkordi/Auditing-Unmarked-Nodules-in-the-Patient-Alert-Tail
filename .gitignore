@@ -1,0 +1,18 @@
+# LaTeX build products
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+# never commit patient data
+*.npz
+*.nii
+*.nii.gz
+*.mhd
+*.raw
+data/
+__pycache__/

@@ -1,0 +1,57 @@
+\section{What the Audits Reveal and the Heads Recover}
+\label{sec:locked}
+
+\subsection{Target exposure at a fixed candidate budget}
+
+Paired-tail allocation reaches \ReachPair{} of the 92 observed training omissions in expectation with about 3,950 candidate decisions. Base mark-stratified allocation reaches \ReachMark{} with about 7,900. At the same half budget, mark-stratified and uniform sampling reach 13.0 and 1.4 omissions, respectively, while image-tail sampling reaches \ReachImage{}. Thus most of the increase comes from score information, with a further 15.2 distinct omissions reached by adding the paired evidence at the same budget (Fig.~\ref{fig:acquisition}A). Paired tail reaches 10--17 more omissions than image tail in every matched draw.
+
+The gain extends to double-unmarked omissions, for which no eligible proposal carries either weak mark. The paired and image-tail policies at half budget reach 27.4 and 22.6 of the 35 targets in this group in expectation. Base mark stratification reaches 0.9 (Fig.~\ref{fig:acquisition}B). Since the paired policy cannot use a positive mark on these proposals, this gain reflects the way weak evidence changes the allocation across the entire roster. The image ranking and the probability floor still give double-unmarked locations a route to review.
+
+The realized audit counts agree with the finite-pool expectation. Across the six draws, paired tail at half budget examines an average of 3,940 proposals and reaches 482.7 distinct original targets, including 79.2 omissions. Base mark stratification examines 7,933 proposals and reaches 142.0 distinct targets, including 24.2 omissions. Both policies touch nearly all 445 fit patients. The exposure gain changes how review is distributed \emph{within} patients, an important distinction when opening or reading a scan has a fixed cost.
+
+\subsection{Better features improve proposal ordering}
+
+The 3D representation improves separation between targets and unmatched proposals. In development, the learned full-reference head recovered 38 of 105 targets at nominal 10\% alerts, versus 23 for handcrafted features, with four versus five alerts on 35 negatives. Candidate sensitivity at a descriptive 0.1\% unmatched-candidate FPR rose from 27.7\% to 63.5\%. The initial multi-view checkpoint improved candidate separation and fell short of the development localization gate. The 3D model passed it.
+
+On the locked test set, the 3D full-reference head recovered \OriginalLearned{} of 276 targets versus \OriginalDescriptor{} using descriptors, a paired gain of 9.8 percentage points (95\% interval [3.6, 16.6]). Negative alerts fell from 12 to 2 of 105. The fraction of covered targets ranked above every unmatched proposal in their scan rose from 33.6\% to 67.9\%. The improvement in ranking can be measured without a threshold and agrees with the all-target localization comparison. For observed omissions, the two full-reference heads found two and one of 42, respectively. Image capacity improves overall recovery while the omission subgroup remains difficult at the locked threshold.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.5pt}
+\caption{\textbf{Representation and supervision at the locked anchor.} Each cell reports recovered omissions out of 42, recovered targets out of 276, and alerts out of 105 negative patients. Audited methods share the base mark-stratified draw.}
+\label{tab:factorial}
+\input{tables/observed}
+\end{table}
+
+Table~\ref{tab:factorial} reports the supervision factorial, including the simple weak-label, direct audited, and full-reference fits. For learned features, first-read training recovers 81 total targets and four omissions, compared with 74 and one for the full-reference head. These two fits use the same frozen embedding. The full-reference result therefore measures what a linear readout of that embedding does with complete original labels. It is a useful control on supervision and ranking under a shared representation.
+
+\subsection{Omission recovery at the locked threshold}
+
+Across six matched draws, the selected half-budget fit recovers 23.1\% of all targets versus 20.1\% for base-budget mark IPW, a paired gain of 3.0 points [1.3, 4.9]. It uses \AuditSave\% fewer candidate audits. Negative alerts average 2.5\% versus 4.3\%, and FP/scan averages 0.15 versus 0.16. The anchor counts are 69 and 70 all-target detections, so the average effect also reflects variations in which targets the other draws recover.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3.15pt}
+\caption{\textbf{Allocation and training under the locked C/D reference.} Entries average the six matched learned-feature draws at nominal $\alpha=0.10$. Recall and alerts are percentages. First read is deterministic given the fit patients and encoder.}
+\label{tab:alloc}
+\input{tables/allocations}
+\end{table}
+
+On the locked primary endpoint, the selected fit averages \PairPrimary\% omission recall versus \IpwPrimary\% for mark IPW, a difference of $-4.0$ points [$-7.0$, $-1.4$]. The lower limit is below the prespecified $-5$-point margin. First-read training recovers 9.5\% of omissions and 29.3\% of all targets with 1.9\% negative alerts and 0.22 FP/scan. At half budget with the same discriminative training, conventional mark, uniform and image-tail allocation reach 7.5\%, 7.9\%, and 4.8\% omission recall, respectively. See Tab.~\ref{tab:alloc} for the full allocation comparison.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{locked_performance}
+\caption{\textbf{Locked localization and paired effects.} (A) Each point uses a calibration-derived cutoff. Open markers denote nominal $\alpha=0.10$. Axes show mean realized test alerts and mean observed omission recall. (B) The selected half-budget fit minus each baseline, with patient-clustered 95\% intervals over the same matched fits. The open points use the calibration-only matched-alert check, whose realized test burdens can still differ.}
+\label{fig:locked}
+\end{figure*}
+
+The full low-alert curves show a transition from few recovered omissions to much higher recall as the calibration rule admits more alerts (Fig.~\ref{fig:locked}A). Under the calibration-only matched-alert rule, paired-tail omission recall remains 3.6 points lower than IPW [$-7.0$, $-0.9$], and the overall gain shrinks to 0.3 points. The test-patient alert fractions under this rule are 1.7\% and 2.9\%. This check supports the direction of the primary comparison without equating the realized test burdens.
+
+The first-read score, IPW, and the common discriminative head also help locate the effect of the auxiliary. Under the base mark allocation, discriminative and EM augmentation have the same mean omission recall across their three shared draws, and discriminative augmentation shows no clear improvement over image-only augmentation. Power tuning preserves omission counts under the base mark policy. With the selected allocation, tail weighting improves all-target recall by 2.9 points [1.0, 4.8] and changes omission recall by $-0.4$ [$-1.9$, 1.0]. The controlled bookmark cap produces a different pattern. Learned EM augmentation recovers 37 of 151 cap omissions at the anchor versus 25 for first read, with five and four negative alerts respectively. Across its three repeats, EM augmentation recovers 29--37 and audit-only IPW recovers 32--34. The cap tests an imposed size-selection mechanism, with a separately trained encoder and the same physical roster.
+
+\subsection{Locating the missed detections}
+
+All 42 observed omissions have an eligible proposal. At the selected anchor, 16 targets have a candidate ahead of every unmatched proposal in the same scan, and only one crosses the calibrated cutoff. Of the 41 misses, 26 are outranked by an unmatched candidate. The other 15 win that within-scan comparison but remain below threshold. The median rank relative to unmatched proposals is two and the median margin to the cutoff is $-2.22$ logit units. This distinguishes missing localization coverage, which does not occur for this subgroup, from ranking and operating-point losses.
+
+Disputed structures offer a clue about the latter. Only 74 of 45,541 proposals on original negative calibration scans lie near an isolated C or D contour, yet all three sampled maxima near the cutoff have that flag. So do both maxima that trigger an alert on an original negative test scan. In the locked mask sensitivity, masking those candidates at the original cutoff removes both negative alerts and preserves the one recovered omission. Recalibration after masking gives 12 of 42 recovered omissions and five alerts among the 105 original negatives. This intervention changes proposal eligibility. To isolate patient membership, the next analysis keeps the entire roster and scores intact.

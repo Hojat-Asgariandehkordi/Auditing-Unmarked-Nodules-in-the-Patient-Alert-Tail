@@ -1,0 +1,19 @@
+\section{Discussion}
+
+\paragraph{Where paired evidence adds labels.}
+Paired-tail sampling reaches more distinct omitted nodules than score-only sampling at the same budget. Its extra reach among targets with no weak marks shows the value of redistributing the review budget across the candidate roster. The within-scan rank and absolute score keep these locations eligible for audit.
+
+\paragraph{What a low-alert evaluation should expose.}
+For studies that calibrate a score on reference-negative patients, the patient membership rule deserves the same attention as the spatial matching rule. A useful sensitivity analysis holds candidate scores and target identities fixed, reports the calibration rank and the reference status of the maxima near it, then applies each cutoff to common test support. Size-matched deletions help separate a reference effect from a smaller calibration set. A complementary clinical study would independently adjudicate those maxima and prespecified controls under a declared target scope before repeating the comparison on new patients. In this study both reference rules come from the same four LIDC records. The score-fixed analysis establishes the effect of using those rules on these patients, while independent readings would address whether the excluded cases belong to the intended deployment reference.
+
+\paragraph{Workload and interpretation.}
+The observed audit saving is a saving in candidate decisions. The selected and conventional policies touch almost every fit patient, so a scan-opening or navigation cost would reduce proportional time savings. Their mark-based designs also use existing second-reader information. With a different workflow, acquiring that read, running the pilot, choosing an intervention, and evaluating the intervention all contribute to total cost. Those costs and review times were unmeasured. The evidence supports the spatial acquisition gain and the evaluation sensitivity, with the effectiveness of intervention choices at comparable total cost still open.
+
+\paragraph{Limits of the design.}
+The learned backbone was trained on first-read marks and frozen before audit-corrected fitting. End-to-end training from revealed labels could alter the ranking stage. The roster is shared across models and inherits LUNA16 candidate provenance. The public CTs had earlier cohort exposure, and the reference checks are retrospective on the same patients. The controlled bookmark cap changes the marking policy and should be interpreted within that intervention. The patient-resampling intervals address variation in the tested population with the fitted scores held fixed.
+
+The study reused public de-identified images and released annotations. It involved no interaction with participants, new data collection, or consent for this secondary analysis. No new ethics review was conducted for this secondary use.
+
+\section{Conclusion}
+
+Paired-tail probability sampling reaches more omitted training nodules at the same candidate budget than sampling by image rank alone. Changing the negative calibration pool moves the cutoff across feature families and changes how detectors compare on the same targets. For low-alert detection studies, these two measurements identify which labels a budgeted audit can reveal and which calibration patients determine when a scored proposal becomes an alert.

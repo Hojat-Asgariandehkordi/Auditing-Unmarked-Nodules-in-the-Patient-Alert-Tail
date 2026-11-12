@@ -1,0 +1,58 @@
+\section{Which Patients Set the Cutoff?}
+\label{sec:tail}
+
+\subsection{Changing membership while holding scores fixed}
+
+We compare the original $P$ calibration set with $U$, which excludes any $P$-negative scan containing an official LUNA16 consensus nodule. In calibration this reassigns 14 of 67 original negatives, two from subset 2 and 12 from subset 6. In test it reassigns 15 of 105. Both thresholds are evaluated on the 90 patients negative by both rules. All original test targets remain eligible under both thresholds, including those on reassigned patients. The candidate predictions, target geometry, and omission denominator stay the same. This isolates the effect of changing calibration membership on target calls. It also separates that effect from changes in which patients contribute to the test alert denominator.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{reference_tail}
+\caption{\textbf{A few high maxima move the cutoff while scores stay fixed.} (A) Ordered maxima from the selected anchor among the original negative calibration patients. Diamonds denote patients with an official consensus target. Rings mark the original cutoff and the cutoff after exclusion, both placed on the original rank axis. (B) Original omitted-target calls at the two cutoffs. (C) Alerts on the same 90 common-negative test patients. Both cutoffs use nominal $\alpha=0.10$.}
+\label{fig:tail}
+\end{figure*}
+
+Figure~\ref{fig:tail}A shows what moves the selected anchor. Three of the six largest maxima are on patients with an official consensus target, and all three maxima spatially match such a target. The C/D cutoff is rank \PRank{} of \PCal{} and has logit \PairCutoffP. The $U$ cutoff is rank \URank{} of \UCal{}. Its original position was \PairRank{}, and its logit is \PairCutoffU. The smaller calibration set therefore selects a score \PairDrop{} ranks below the original threshold. The positions around the threshold matter more than the proportion of all proposals flagged as disputed.
+
+The same selected scores now recover \PairHitsU{} of 42 omissions, compared with \PairHitsP{} before the membership change. Of the ten additional recoveries, five already ranked ahead of every unmatched candidate on their scan. The other five can cross the lower threshold even while another proposal ranks higher. On the same \UTest{} negative test patients, alerts change from \PairAlertsP{} to \PairAlertsU{}. Before the reclassification, the two original negative test alerts were on scans with an official consensus nodule at the flagged location. Their maxima leave the alert denominator, but all of their scores remain in the analysis.
+
+\subsection{How much movement comes from sample size?}
+
+We remove the same number of calibration patients as $U$ does within each original subset, drawing uniformly from the corresponding $P$ negatives. This control retains 53 patients in each of 8,192 paired draws, so the threshold always uses the same smaller-sample rank as $U$. We compare the location of that score on the original rank axis. For the selected anchor the median random displacement is \PairRobustMedian{} ranks, and the upper end of the central 95\% random-removal band is \PairControlHi. The actual seven-rank move is larger (Fig.~\ref{fig:robust}A). The control accounts for the asymmetric deletions from subsets 2 and 6.
+
+The direction holds across model fits. Of the \NHeads{} distinct score vectors from \NHeadRows{} fits, \LowerHeads{} have a lower cutoff with $U$, and the median shift is \MedianDrop{} ranks. The median number of excluded patients among the original six largest maxima is \TopRemoved. For \PastBand{} score vectors the actual displacement exceeds the upper end of the size-matched removal band. The counts describe heads and audit draws evaluated on shared patients.
+
+The capacity of the scorer still matters after calibration moves. At the anchor, both handcrafted fits retain two omission detections even though their cutoffs fall. The multi-view first-read head moves from four to 11 omissions, and its full-reference head moves from three to 11. The corresponding 3D fits move from four to 11 and one to ten. The two learned representations put more omitted targets in the score interval reached by the revised threshold. Table~\ref{tab:reference} records the paired alert counts, which change along with recovery.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\caption{\textbf{Fixed-score comparison from original to augmented negative membership.} Each entry gives the result under the $P$ cutoff followed by the result under the $U$ cutoff. The 42 omitted targets, 276 total targets, and 90 common-negative test patients are identical across both cutoffs. Rank drop uses positions in the original calibration pool. Multi-view heads extend the retrospective stress test.}
+\label{tab:reference}
+\input{tables/reference_anchor}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{robustness}
+\caption{\textbf{Sensitivity across features, supervision, and reader assignments.} (A) Points show each anchor head's cutoff rank drop under official-consensus augmentation. Gray spans show the central 95\% of the subset-matched random deletion distribution and ticks show its median. (B) Numbers are omitted targets recovered out of the same 42 as calibration varies over all six possible pairs of reader roles. The box identifies C/D, the original assignment.}
+\label{fig:robust}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.98\textwidth]{ct_evidence}
+\caption{\textbf{The same scored structures can play different roles in calibration and testing.} (A) The candidate at the original calibration cutoff, near an isolated C/D contour. (B) A nearby-ranked maximum that matches an official consensus nodule, on a patient excluded from the augmented negative pool. (C) An original omission newly called at the lower cutoff, with no score change. (D) A covered omission that remains below both cutoffs and has a higher-scoring unmatched distractor. Calibration panels center on the maximum proposal. Test panels center on the original target and give best matched logit minus the original and augmented cutoffs.}
+\label{fig:ct}
+\end{figure*}
+
+\subsection{Does the choice of reference change the comparison?}
+
+At the original cutoffs the selected paired-tail head recovers \PairHitsP{} anchor omissions against \IwahitsP{} for mark IPW. At the augmented cutoffs those counts are \PairHitsU{} and \IwahitsU{}. On the common-negative patients, their augmented alert counts are eight and six. First read recovers 11 omissions with five alerts. Common test support makes both the change in recall ordering and the accompanying difference in alert burden visible.
+
+Across the six audit fits, paired tail gains \PairChange{} points \PairChangeCI{} in omission recall when changing only the calibration reference. Its mean difference from mark IPW moves from \PairRelativeP{} points \PairRelativePCI{} to $+\PairRelativeU$ points \PairRelativeUCI{}, at the same nominal calibration level. This is a \ReferenceInteraction{}-point shift in the comparison \ReferenceInteractionCI{}. Common-negative alert means under $U$ are 7.2\% for paired tail, 6.1\% for IPW and 5.6\% for first read. The uncertainty intervals resample the test patients jointly and condition on both calibrated sets of scores. The paired shift quantifies the leverage of the negative reference on the method comparison. The C/D result reports the prespecified endpoint under the original reference.
+
+Changing which reader pair defines a negative scan supplies a second stress test without adding any records. For the selected anchor the six pairs give between one and five recovered omissions, with zero to one alerts among the 69 test patients negative under every pair and the official definition. Other learned heads also vary across pairs (Fig.~\ref{fig:robust}B). Different pairs admit different high-scoring patients. Augmenting C/D with the released consensus gives the larger shift and can remove a candidate's entire scan from the negative tail.
+\subsection{What the reference checks say about the image}
+
+Figure~\ref{fig:ct} shows why a cutoff-focused examination needs both scores and locations. A large maximum can come from a candidate with documented reader disagreement. Its influence on the cutoff depends on whether the patient remains eligible, even if a separate reader labels the same location positive. Conversely, for a test omission the same nodule can change from a miss to a call solely because a different set of patients calibrated the threshold. A miss can also persist after the shift when an unmatched candidate scores higher and the target remains below both cutoffs. Counts alone merge these cases. Proposal matches, within-scan ranks, and threshold margins let us distinguish them without attributing every miss to a single cause.

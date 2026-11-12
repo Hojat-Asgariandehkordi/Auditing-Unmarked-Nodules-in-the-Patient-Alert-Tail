@@ -1,0 +1,76 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[review]{cvpr}
+\usepackage{amsmath,amssymb,booktabs,graphicx}
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+\def\confName{CVPR}
+\def\confYear{2027}
+\graphicspath{{figures/}}
+\input{tables/values}
+
+\title{Auditing Unmarked Nodules in the Patient Alert Tail}
+\author{Anonymous}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study how audit allocation and reference membership shape low-alert pulmonary nodule detection. We introduce paired-tail sampling, a probability audit that combines a frozen image ranking with evidence from two weak reads. On LUNA16 CT, it reaches \ReachPair{} of 92 first-reader omissions in expectation at half the candidate budget, compared with \ReachImage{} for image-only tail sampling at the same budget and \ReachMark{} for full-budget mark stratification. We then isolate the effect of reference membership on calibration by keeping detector scores and target identities fixed. Excluding scans with an official consensus nodule from the two-reader negative pool lowers the cutoff for \LowerHeads{} of \NHeads{} distinct score vectors across three feature families. The selected 3D fit's cutoff falls seven ranks in the original calibration pool, beyond the central 95\% band under size-matched random removal. With the lower cutoff, recovery rises from \PairHitsP{} to \PairHitsU{} of 42 original omissions, and alerts rise from \PairAlertsP{} to \PairAlertsU{} on the same 90 negative test patients. These experiments quantify what targeted audits reveal and which reference decisions change low-alert evaluation.
+\end{abstract}
+
+\section{Introduction}
+
+A pulmonary nodule can be visible on CT and absent from a reader's marks. Which candidates receive a second look determines how many such lesions enter training. On a different set of patients, a single high-scoring candidate can determine a patient's maximum score. When that patient counts as negative, its maximum can help set the alert cutoff for every test scan. Sparse spatial annotations therefore affect both the supply of training labels and the operating point at which a fitted detector is evaluated.
+
+We develop an audit that uses image scores to find candidates likely to matter at low alert rates. The policy combines the candidate's absolute score and its rank within a scan with evidence from two weak reads. It allocates a fixed expected number of audits and gives every candidate a positive chance of review. Counting distinct targets gives a direct measure of acquisition. At the same half budget, adding paired information to image-tail sampling reaches another 15.2 omissions in expectation and 10--17 more in each of six matched draws (Fig.~\ref{fig:acquisition}).
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{acquisition}
+\caption{\textbf{Paired-tail audits expose more distinct training omissions.} (A) Lines show exact expected reach on the same 92 omitted training targets at half and base candidate budgets. Small points are the six realized draws. (B) At half budget, the paired policy reaches more omissions even among targets whose eligible proposals carry neither weak mark.}
+\label{fig:acquisition}
+\end{figure*}
+
+The study tracks what happens after acquisition by holding the roster fixed and comparing image-only heads across representations and supervision. A 3D encoder improves overall localization and within-scan ordering relative to handcrafted features. To distinguish ranking from calibration, we then replay the fitted scores with a different negative calibration pool. We use the released LUNA16 consensus to identify scans with official targets that were negative under the study's two-reader rule. With scores and target matches fixed, these membership changes move the cutoff well beyond the shift expected from equally sized random deletions. They also move the apparent omission-recall difference between audited methods.
+
+Our contributions are a known-probability acquisition design with matched image-only and mark-based controls, and a score-fixed diagnostic that quantifies how the choice of negative reference changes patient-level calibration. The benchmark links both to observed first-reader omissions, measures within-scan ranking, and evaluates both cutoffs on common test support. This separation gives an empirical answer for each stage, from which labels are acquired to which nodules cross the patient alert cutoff.
+
+\section{Related Work}
+
+\paragraph{Sparse labels and candidate review.}
+DeepLesion mines clinical bookmarks \cite{yan2018}. Lesion-Harvester and EnrichedDL use additional annotations or model outputs to quantify and address missed lesions \cite{cai2021,ma2024}. Multi-reader segmentation methods model reader-specific labels or confusion \cite{tanno2019,wu2024}. Positive--unlabeled learning provides a related setting in which selection into the marked group matters \cite{kiryo2017,bekker2018}. We define omissions against a separate spatial reference and count distinct targets reached by a probability audit. This makes the unit of discovery a lesion, including targets outside the proposal roster in the denominator.
+
+\paragraph{Score-guided acquisition and training.}
+Multi-view and volumetric scores support false-positive reduction in pulmonary CT \cite{setio2016views,setio2017}. Deep active learning has used scan and proposal uncertainty to choose CT examples for annotation \cite{liu2020active}. Two-phase sampling and active statistical inference use predictions to guide label collection under a budget \cite{chen2020sampling,zrnic2024active,li2025robust}. We use scan rank and a low-alert cutoff to define the score region for allocation, then test the added value of paired marks. Corrected training uses augmented inverse-probability weighting and patient cross-fitting \cite{robins1994,chernozhukov2018}, with prediction-powered learning as a related approach \cite{angelopoulos2023ppi,ppssl2025}.
+
+\paragraph{Reference and operating point.}
+The LUNA16 observer study identified nodules among apparent false positives \cite{setio2017}. Validation guidelines emphasize reference quality and endpoint choice \cite{maierhein2024metrics}, and conformal inference work examines the effect of imperfect calibration labels \cite{einbinder2024label,feldman2026corrupted}. Our diagnostic isolates the patient-level consequence. Reference membership determines which scan maxima set an order statistic, even when candidate scores and localization targets stay fixed.
+
+\ifdefined\ExtendedDraft
+  \input{design}
+  \input{experiments}
+  \input{reference}
+  \input{discussion}
+\else
+  \input{methods}
+  \input{findings}
+
+\section{Discussion and Conclusion}
+
+Tail-guided probability sampling gives direct control over which parts of the candidate pool are reviewed. The same-budget image-only comparison identifies the increment from paired marks, including targets whose eligible proposals carry neither mark. At a strict patient alert rate, a small set of patients can exert leverage on the calibrated cutoff. To quantify that leverage, inspect the reference status of the maxima near the cutoff, replay the same scores under the alternative reference, and compare target recovery and alerts on common test support.
+
+The acquisition benefit is measured in candidate decisions. Both mark-based policies touch almost every fitting patient and use existing second-reader information. Review time, the cost of obtaining an additional read, and total intervention-selection cost remain open. The roster inherits LUNA16 proposal provenance, the reference rules reuse the same unblinded reader records, and the cohort has prior public-data exposure. Independent adjudication of the maxima and replication on new patients would test how the observed calibration effect transfers. End-to-end training from revealed labels would address a separate question about improving the image representation.
+
+This secondary analysis uses released de-identified images and annotations, with no participant interaction or new data collection. No new ethics review was conducted and no new consent was collected for this analysis.
+\fi
+
+\begin{samepage}
+\section*{LLM Usage Statement}
+OpenAI Codex assisted with experimental design, analysis code and execution, data-derived figure preparation, literature checks, and drafting and editing the manuscript and supplement.
+\end{samepage}
+
+{\small
+\bibliographystyle{ieeenat_fullname}
+\bibliography{references}
+}
+\end{document}
