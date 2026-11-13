@@ -7,9 +7,9 @@ import data as D
 
 
 def fig_locked():
-    fig, (a, b) = plt.subplots(1, 2, figsize=(TEXT_W, 2.0), gridspec_kw=dict(width_ratios=[1, 1.05], wspace=0.55))
-    style = {"paired": (C["paired"], "-", "Paired tail (half)"), "mark_ipw": (C["mark"], "-", "Mark IPW (base)"),
-             "mark_same_head": (C["mark"], (0, (3, 1.5)), "Mark, same head (half)"), "first": (C["first"], "-", "First read")}
+    fig, (a, b) = plt.subplots(1, 2, figsize=(TEXT_W, 2.25), gridspec_kw=dict(width_ratios=[1, 1.05], wspace=0.55))
+    style = {"paired": (C["paired"], "-", "Paired-tail disc. (half)"), "mark_ipw": (C["mark"], "-", "Mark IPW (base)"),
+             "mark_same_head": (C["mark"], (0, (3, 1.5)), "Mark disc. (half)"), "first": (C["first"], "-", "First read")}
     for k, (col, ls, lab) in style.items():
         xy = np.array(D.CURVES[k])
         a.plot(xy[:, 0], xy[:, 1], color=col, ls=ls, lw=1.2, marker="o", ms=2.2, label=lab)
@@ -18,9 +18,10 @@ def fig_locked():
     a.set_ylim(0, 33)
     a.set_xlabel("Negative patients alerted (%)")
     a.set_ylabel("Omission recall (%)")
-    a.legend(loc="upper left", fontsize=6.6)
-    a.text(19.6, 1.2, r"open: nominal $\alpha=0.10$", ha="right", fontsize=6.6, color=C["muted"])
-    panel_title(a, "a", "Recall along the alert curve", x=-0.15)
+    a.legend(loc="lower left", bbox_to_anchor=(-0.02, 1.1), ncol=2, fontsize=6.6, handlelength=1.6,
+             columnspacing=0.9, borderaxespad=0.0)
+    a.text(0.6, 31.5, r"open: nominal $\alpha=0.10$", ha="left", va="top", fontsize=6.6, color=C["muted"])
+    panel_title(a, "a", "Recall along the alert curve", x=-0.15, y=1.01)
 
     names = list(D.CONTRAST_OMIT)
     b.axvspan(-18.5, D.NONINF_MARGIN, color="#f6ecec", lw=0)
@@ -39,10 +40,10 @@ def fig_locked():
     b.set_xlim(-18.5, 3)
     b.set_ylim(-0.6, 2.6)
     b.set_xlabel("Paired tail minus baseline, omission recall (pp)")
-    b.plot([], [], "o", color=C["first"], ms=4, label="nominal cutoff")
+    b.plot([], [], "o", color=C["first"], ms=4, label="nominal threshold")
     b.plot([], [], "o", mfc="white", mec=C["first"], ms=4, label="calibration-matched")
-    b.legend(loc="lower right", fontsize=6.6)
-    panel_title(b, "b", "Paired effects with 95% patient intervals", x=-0.3)
+    b.legend(loc="lower left", fontsize=6.6)
+    panel_title(b, "b", "Paired effects with 95% patient intervals", x=-0.3, y=1.01)
     save(fig, "locked_performance")
 
 

@@ -170,12 +170,12 @@ def fig_robustness():
 
 # ------------------------------------------------------------------ Fig. 3
 def fig_effects():
-    fig = plt.figure(figsize=(TEXT_W, 1.85))
-    gs = fig.add_gridspec(1, 5, width_ratios=[1.15, 0.36, 1, 1, 1], wspace=0.1, left=0.055, right=0.99, bottom=0.21,
-                          top=0.8)
+    fig = plt.figure(figsize=(TEXT_W, 2.0))
+    gs = fig.add_gridspec(1, 5, width_ratios=[1.15, 0.36, 1, 1, 1], wspace=0.1, left=0.055, right=0.99, bottom=0.2,
+                          top=0.76)
     a = fig.add_subplot(gs[0])
-    style = {"paired": (C["paired"], "-", "Paired tail (half)"), "mark_ipw": (C["mark"], "-", "Mark IPW (base)"),
-             "mark_same_head": (C["mark"], (0, (3, 1.5)), "Mark, same head (half)"), "first": (C["first"], "-", "First read")}
+    style = {"paired": (C["paired"], "-", "Paired-tail disc. (half)"), "mark_ipw": (C["mark"], "-", "Mark IPW (base)"),
+             "mark_same_head": (C["mark"], (0, (3, 1.5)), "Mark disc. (half)"), "first": (C["first"], "-", "First read")}
     for k, (col, ls, lab) in style.items():
         xy = np.array(D.CURVES[k])
         a.plot(xy[:, 0], xy[:, 1], color=col, ls=ls, lw=1.1, marker="o", ms=1.8, label=lab, drawstyle="default")
@@ -186,12 +186,13 @@ def fig_effects():
     a.set_xticks([0, 5, 10, 15, 20])
     a.set_xlabel("Negative patients alerted (%)", labelpad=1)
     a.set_ylabel("Omission recall (%)")
-    a.legend(loc="upper left", fontsize=6.2, handlelength=1.6, labelspacing=0.2, borderaxespad=0.1)
-    a.text(19.5, 1.2, "open: nominal $\\alpha=0.10$", fontsize=6.3, ha="right", color=C["muted"])
+    fig.legend(*a.get_legend_handles_labels(), loc="upper left", bbox_to_anchor=(0.0, 1.03), ncol=2, fontsize=6.6,
+               handlelength=1.6, labelspacing=0.2, columnspacing=0.9, borderaxespad=0.1)
+    a.text(0.6, 31.5, "open: nominal $\\alpha=0.10$", fontsize=6.3, ha="left", va="top", color=C["muted"])
     panel_title(a, "a", "Recall along the alert curve", x=-0.2)
 
     base = list(D.REF_EFFECTS)
-    refs = [("C/D", C["first"], True), ("+ official", C["official"], False)]
+    refs = [("C/D", C["paired"], True), ("+ official", C["paired"], False)]
     spec = [("omit", "Omission recall", (-17, 12), "b"), ("all", "All-target recall", (-11, 10), "c"),
             ("alert", "Negative-patient alerts", (-5, 5), "d")]
     for j, (key, lab, xl, letter) in enumerate(spec):
@@ -205,7 +206,7 @@ def fig_effects():
             y0 = len(base) - 1 - i
             for dy, (ref, col, open_) in zip((0.17, -0.17), refs):
                 est, lo, hi = D.REF_EFFECTS[bname][ref][key]
-                ci_h(ax, y0 + dy, lo, hi, est, col, open_=open_, marker="o" if open_ else "D", ms=4.2, lw=1.2)
+                ci_h(ax, y0 + dy, lo, hi, est, col, open_=open_, marker="o", ms=4.2, lw=1.2)
         ax.set_ylim(-0.6, 2.8)
         ax.set_yticks(range(len(base)))
         ax.set_yticklabels(base[::-1] if j == 0 else [])
@@ -219,8 +220,8 @@ def fig_effects():
         ax.set_xticks({"omit": [-15, -10, -5, 0, 5, 10], "all": [-10, -5, 0, 5], "alert": [-4, -2, 0, 2, 4]}[key])
         ax.set_xlabel("selected minus baseline (pp)", labelpad=1)
         panel_title(ax, letter, lab, x=-0.02)
-    h1, = fig.axes[1].plot([], [], "o", mfc="white", mec=C["first"], ms=4)
-    h2, = fig.axes[1].plot([], [], "D", color=C["official"], ms=4)
+    h1, = fig.axes[1].plot([], [], "o", mfc="white", mec=C["paired"], mew=1.1, ms=4.5)
+    h2, = fig.axes[1].plot([], [], "o", color=C["paired"], ms=4.5)
     fig.legend([h1, h2], ["threshold from C/D negatives", "threshold after excluding official positives"],
                loc="upper right", bbox_to_anchor=(0.995, 1.02), ncol=2, fontsize=6.8, handletextpad=0.25,
                columnspacing=1.0, borderaxespad=0.1)
@@ -238,11 +239,9 @@ def fig_ct():
         ax.imshow(im, cmap="gray", vmin=0, vmax=255, extent=(0, D.CT_FOV_MM, D.CT_FOV_MM, 0))
         c = D.CT_FOV_MM / 2
         ax.add_patch(Circle((c, c), d["circle_mm"] / 2, fill=False, ec="#f6d860", lw=1.0))
-        stroke = [pe.withStroke(linewidth=2.2, foreground="#1b262c")]
-        ax.plot([1.6, 6.6], [D.CT_FOV_MM - 2.2] * 2, color="white", lw=2.0, solid_capstyle="butt",
-                path_effects=[pe.Stroke(linewidth=3.4, foreground="#1b262c"), pe.Normal()])
-        ax.text(4.1, D.CT_FOV_MM - 3.0, "5 mm", color="white", ha="center", va="bottom", fontsize=6.6,
-                path_effects=stroke)
+        ax.add_patch(Rectangle((0.8, D.CT_FOV_MM - 6.4), 6.6, 5.6, fc="black", ec="none", alpha=0.55))
+        ax.plot([1.6, 6.6], [D.CT_FOV_MM - 2.0] * 2, color="white", lw=2.0, solid_capstyle="butt")
+        ax.text(4.1, D.CT_FOV_MM - 2.8, "5 mm", color="white", ha="center", va="bottom", fontsize=6.6)
         ax.set_xticks([])
         ax.set_yticks([])
         for s in ax.spines.values():

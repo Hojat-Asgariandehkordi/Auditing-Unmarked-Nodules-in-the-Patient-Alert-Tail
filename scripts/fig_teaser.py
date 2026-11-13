@@ -191,6 +191,8 @@ def main():
         ab = AnnotationBbox(OffsetImage(im, cmap="gray", zoom=0.085), xy, xybox=box, xycoords="data",
                             boxcoords="data", pad=0.08, bboxprops=dict(ec=col, lw=1.1), arrowprops=arrow)
         b.add_artist(ab)
+    # leader from the recovered-omission star down and across to its crop (the crop is not on the score axis)
+    b.plot([test_score, test_score, 2.36], [-0.42, -0.56, -0.56], color=C["paired"], lw=0.6, zorder=1)
 
     c = fig.add_subplot(gs[1, :])
     pipeline(c)

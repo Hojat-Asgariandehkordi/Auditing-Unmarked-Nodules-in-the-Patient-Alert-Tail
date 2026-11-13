@@ -57,7 +57,7 @@ REF_EFFECTS = {
     "Mark IPW": {
         "C/D":        dict(omit=(-4.0, -7.0, -1.4), all=(3.0, 1.3, 4.9), alert=(-1.5, -3.1, 0.0)),
         "+ official": dict(omit=(3.6, -1.4, 9.5), all=(6.0, 3.8, 8.4), alert=(1.1, -0.8, 3.4))},
-    "Mark, same head": {
+    "Mark disc. (half)": {
         "C/D":        dict(omit=(-4.4, -8.3, -0.8), all=(-1.3, -3.0, 0.4), alert=(-2.0, -4.2, -0.4)),
         "+ official": dict(omit=(4.4, -0.9, 10.0), all=(4.8, 3.0, 6.7), alert=(0.9, -0.7, 2.7))},
     "First read": {
@@ -70,7 +70,7 @@ NONINF_MARGIN = -5.0  # prespecified margin on the omission endpoint (methods.te
 CONTRAST_OMIT = {
     "First read":      dict(nominal=(-6.3, -15.1, 0.0), matched=(-7.1, -17.1, 0.0)),
     "Mark IPW":        dict(nominal=(-4.0, -7.0, -1.4), matched=(-3.6, -7.0, -0.9)),
-    "Mark, same head": dict(nominal=(-4.4, -8.3, -0.8), matched=(-2.4, -5.7, 0.8)),
+    "Mark disc. (half)": dict(nominal=(-4.4, -8.3, -0.8), matched=(-2.4, -5.7, 0.8)),
 }
 
 # RECOVERED: alert curves (mean alerts %, mean omission recall %)

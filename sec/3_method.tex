@@ -30,16 +30,16 @@ Let $m_i\in\{0,1,2\}$ count the weak marks on candidate $i$, and let $p_i$ be th
 together with its Bernoulli variance $v_i=\max\{u_i(1-u_i),\,0.006\}$. The coefficients are a fixed design heuristic, chosen before any reference label was revealed. They render two concordant marks nearly certain, so that $v_i$ is small, and a single mark highly uncertain, so that $v_i$ approaches its maximum of 0.25; the floor of 0.006 prevents clear negatives from being excluded entirely.
 
 \paragraph{Allocation.}
-For an expected budget $B=\sum_i\pi_i$, we choose the probabilities that minimize $\sum_i \bar h_i^2 v_i\,(1/\pi_i-1)$ with $\bar h_i=\max(h_i,0.002)$. This objective is a leverage-weighted surrogate for the variance of an inverse-probability label correction, so that audits are spent where both leverage and uncertainty are high. Setting the derivative equal to a common Lagrange multiplier yields the square-root rule
+For an expected budget $\mathcal B=\sum_i\pi_i$, we choose the probabilities that minimize $\sum_i \bar h_i^2 v_i\,(1/\pi_i-1)$ with $\bar h_i=\max(h_i,0.002)$. This objective is a leverage-weighted surrogate for the variance of an inverse-probability label correction, so that audits are spent where both leverage and uncertainty are high. Setting the derivative equal to a common Lagrange multiplier yields the square-root rule
 \begin{equation}
  \pi_i=\operatorname{clip}\!\left(c\,\bar h_i\sqrt{v_i},\ 0.005b,\ 0.95\right),
- \qquad \textstyle\sum_i\pi_i=B,
+ \qquad \textstyle\sum_i\pi_i=\mathcal B,
  \label{eq:allocation}
 \end{equation}
 in which the constant $c$ is found by bisection, $b\in\{0.5,1\}$ denotes the half or base budget, and the floor $0.005b$ guarantees every candidate a chance of review.
 
 \paragraph{Budget-matched controls.}
-\emph{Image-tail} sampling applies Eq.~\eqref{eq:allocation} with a constant $v_i$ and thus ranks candidates without using the marks. \emph{Mark stratification}, the conventional design, sets $\pi_i=(0.02,0.35,0.20)\,b$ for $m_i=0,1,2$, and its expected count defines the budget $B$ shared by all policies. \emph{Uniform} sampling sets $\pi_i=B/N$ for $N$ candidates. All policies share the same random numbers within each of six matched draws.
+\emph{Image-tail} sampling applies Eq.~\eqref{eq:allocation} with a constant $v_i$ and thus ranks candidates without using the marks. \emph{Mark stratification}, the conventional design, sets $\pi_i=(0.02,0.35,0.20)\,b$ for $m_i=0,1,2$, and its expected count defines the budget $\mathcal B$ shared by all policies. \emph{Uniform} sampling sets $\pi_i=\mathcal B/N$ for $N$ candidates. All policies share the same random numbers within each of six matched draws.
 
 \paragraph{Reach.}
 Since several candidates may cover the same target, we count distinct targets. Denoting by $\mathcal I_j$ the candidates on target $j$, the probability that at least one of them is audited is
@@ -54,10 +54,10 @@ with $a_j=0$ when $\mathcal I_j$ is empty. Summing $a_j$ over the omissions give
 \label{alg:audit}
 \small
 \begin{algorithmic}[1]
-\Require training roster with pilot scores $s_i$, ranks $r_i$, mark counts $m_i$, image predictions $p_i$; budget $B$
+\Require training roster with pilot scores $s_i$, ranks $r_i$, mark counts $m_i$, image predictions $p_i$; budget $\mathcal B$
 \State $h_i\gets$ Eq.~\eqref{eq:leverage}; \ $u_i\gets$ Eq.~\eqref{eq:working}
 \State $v_i\gets\max\{u_i(1-u_i),\,0.006\}$
-\State bisect $c$ so that $\sum_i\pi_i=B$, with $\pi_i$ from Eq.~\eqref{eq:allocation}
+\State bisect $c$ so that $\sum_i\pi_i=\mathcal B$, with $\pi_i$ from Eq.~\eqref{eq:allocation}
 \State draw $R_i\sim\mathrm{Bernoulli}(\pi_i)$; reveal $Y_i$ where $R_i=1$
 \State fit $q_i$ out of fold; $z_i\gets q_i+R_i(Y_i-q_i)/\pi_i$
 \State fit image-only head $g$ with logistic loss on $z_i$
@@ -88,11 +88,11 @@ The score of patient $j$ is the maximum logit over its candidates, $S_j=\max_{i\
  T_\alpha=S_{(k)},\qquad k=\lceil(n+1)(1-\alpha)\rceil ,
  \label{eq:cutoff}
 \end{equation}
-and a patient alerts if any of its candidates scores strictly above $T_\alpha$. If the negative maxima are exchangeable with those of future negative patients, the alert probability is $(n+1-k)/(n+1)\le\alpha$~\cite{angelopoulos2023conformal}. In our setting, $n=\PCal$ and $\alpha=0.10$ give $k=\lceil 61.2\rceil=\PRank$, so the threshold is the sixth-largest negative maximum and the guaranteed alert rate is $6/68=8.8\%$. A target counts as \emph{recovered} if any candidate on it exceeds the threshold.
+and a patient alerts if any of its candidates scores strictly above $T_\alpha$. If the negative maxima are exchangeable with those of future negative patients, the alert probability is $(n+1-k)/(n+1)\le\alpha$~\cite{angelopoulos2023conformal}. In our setting, $n=\PCal$ and $\alpha=0.10$ give $k=\lceil 61.2\rceil=\PRank$, so the threshold is the sixth-largest negative maximum and the alert rate is at most $6/68=8.8\%$. Below, $\alpha=0.10$ is fixed and we write $T_P$ and $T_U$, or simply $T$, for thresholds computed on a negative pool. A target counts as \emph{recovered} if any candidate on it exceeds the threshold.
 
 \subsection{Score-fixed replay of the negative pool}
 \label{sec:replay}
 
 The guarantee above holds only for the population that the calibration negatives represent. Let $P$ denote the patients negative under the C/D reference, and $U\subseteq P$ those that are also negative under the official LUNA16 reference, which accepts nodules marked by at least three of the four readers~\cite{setio2017}. The excluded set $E=P\setminus U$ thus contains scans with a nodule that C and D did not both contour. Their maxima can be large, and since $P$ is a mixture of $U$ and $E$, they can raise the upper order statistic. We recompute Eq.~\eqref{eq:cutoff} on $U$ while keeping every candidate score and every original test target, and count alerts on the same $U$-negative test patients under both thresholds, so that any change in recovery is attributable to the threshold alone.
 
-Removing patients also changes $n$ and $k$; with $n=\UCal$, we obtain $k=\lceil 48.6\rceil=\URank$. To separate the effect of \emph{which} patients are removed from that of a smaller pool, we draw 8,192 random subsets of the same size, stratified by calibration subset, and locate each resulting threshold on the original rank scale. We further rebuild the negative pool for each of the six reader pairs AB through CD, keeping the original targets and a test-negative set common to all pairs.
+Removing patients also changes $n$ and $k$; with $n=\UCal$, we obtain $k=\lceil 48.6\rceil=\URank$ and an alert rate of at most $5/54=9.3\%$. To separate the effect of \emph{which} patients are removed from that of a smaller pool, we draw 8,192 random subsets of the same size, stratified by calibration subset, and locate each resulting threshold on the original rank scale. We further rebuild the negative pool for each of the six reader pairs AB through CD, keeping the original targets and a test-negative set common to all pairs.
