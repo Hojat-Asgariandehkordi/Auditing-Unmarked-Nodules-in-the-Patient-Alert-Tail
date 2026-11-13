@@ -57,7 +57,7 @@ With full reference labels, 3D features recover \OriginalLearned{} of the 276 te
 \input{tables/allocations}
 \end{table}
 
-Table~\ref{tab:alloc} reports all training methods. Compared with base-budget mark IPW, the selected method uses \AuditSave\% fewer audits and raises all-target recall from 20.1\% to 23.1\%, a paired gain of 3.0 points [1.3, 4.9], at a lower alert rate (2.5\% vs.\ 4.3\%) and a similar FP/scan (0.15 vs.\ 0.16). On the primary endpoint, however, the selected method falls short. Its omission recall is \PairPrimary\%, against \IpwPrimary\% for mark IPW, a difference of $-4.0$ points [$-7.0$, $-1.4$] whose lower limit lies below the $-5$-point margin (Fig.~\ref{fig:effects}b, open circles). The conclusion is unchanged at matched alert rates: selecting each method's threshold on one calibration subset so that their alert rates on the other subset agree yields a difference of $-3.6$ points [$-7.0$, $-0.9$].
+Table~\ref{tab:alloc} reports all training methods. Compared with base-budget mark IPW, the selected method uses \AuditSave\% fewer audits and raises all-target recall from 20.1\% to 23.1\%, a paired gain of 3.0 points [1.3, 4.9], at a lower alert rate (2.5\% \vs 4.3\%) and a similar FP/scan (0.15 \vs 0.16). On the primary endpoint, however, the selected method falls short. Its omission recall is \PairPrimary\%, against \IpwPrimary\% for mark IPW, a difference of $-4.0$ points [$-7.0$, $-1.4$] whose lower limit lies below the $-5$-point margin (Fig.~\ref{fig:effects}b, open circles). The conclusion is unchanged at matched alert rates: selecting each method's threshold on one calibration subset so that their alert rates on the other subset agree yields a difference of $-3.6$ points [$-7.0$, $-0.9$].
 
 First-read training, which uses reader A's marks directly, achieves an omission recall of 9.5\%, and the half-budget mark, uniform and image-tail controls with the same estimator reach 7.5\%, 7.9\% and 4.8\%. Along the full alert curve (Fig.~\ref{fig:effects}a), first-read training leads below an alert rate of 3\%, while the audited methods remain close to one another at every rate. Results for a controlled setting in which the first reader keeps only its largest mark per scan, creating 151 imposed test omissions, are reported in the supplement.
 
@@ -74,40 +74,3 @@ First-read training, which uses reader A's marks directly, achieves an omission 
 Every one of the 42 test omissions is covered by at least one candidate, so the roster itself is not the bottleneck. For the selected detector at the anchor draw, 16 omissions outrank every non-target candidate in their scan, yet only one of them exceeds the threshold. Of the 41 missed omissions, 26 are outranked by a non-target candidate in the same scan, whereas the remaining 15 win this within-scan comparison but stay below the threshold by a median of 2.22 logits. For the latter group, the failure occurs at the threshold rather than in the ranking.
 
 The candidates that determine the threshold are unusual. Among the 45,541 candidates on C/D-negative calibration scans, only 74 lie near a contour drawn by just one of the reference readers C and D. Nevertheless, all three sampled maxima around the threshold carry this flag, as do both maxima that trigger alerts on C/D-negative test patients, and both of the latter match official LUNA16 targets. This concentration motivates the analysis of the negative pool in the next section.
-
-\section{Effect of the Calibration Reference}
-\label{sec:tail}
-
-\subsection{Threshold displacement}
-
-Excluding scans with an official consensus nodule removes 14 of the \PCal{} negative calibration patients and leaves \UCal{}. Three of the six largest maxima of the selected detector belong to excluded patients, and each of them matches an official nodule in 3D (Fig.~\ref{fig:tail}a). The original threshold is the 62nd score, a logit of \PairCutoffP{}, whereas the new threshold is the 49th of 53 scores, a logit of \PairCutoffU{} that ranked 55th in the original pool, a drop of \PairDrop{} ranks. Removing 14 patients at random, with the same number per calibration subset, moves the threshold by a median of \PairRobustMedian{} ranks and by at most \PairControlHi{} ranks in 95\% of the draws. The displacement is therefore driven by which patients are removed, not by the reduced pool size.
-
-At the lower threshold, the same scores recover \PairHitsU{} of the 42 omissions instead of \PairHitsP{} (Fig.~\ref{fig:tail}b), and five of the ten additional detections were already ranked above every non-target candidate in their scan. Alerts on the same \UTest{} test patients increase from \PairAlertsP{} to \PairAlertsU{} (Fig.~\ref{fig:tail}c), which is consistent with the nominal rate of 10\%.
-
-\subsection{Robustness}
-
-We repeated the replay for all \NHeadRows{} fitted configurations, which yield \NHeads{} distinct score vectors over hand-crafted, multi-view and 3D features. The threshold falls for \LowerHeads{} of them, by a median of \MedianDrop{} ranks, and for \PastBand{} the drop exceeds the 95\% range of random removal. Since these score vectors share patients and include correlated training variants, the count indicates the breadth of the effect rather than independent replications.
-
-Fig.~\ref{fig:robust}a and Tab.~\ref{tab:reference} detail eight representative detectors. The thresholds of the descriptor heads move by two ranks, within the random range, and both heads retain their two omission detections. In contrast, every learned head moves by six or seven ranks, outside the random range. A lower threshold produces additional detections only when the representation places targets between the two thresholds: the 3D first-read and full-reference heads gain 7 and 9 omissions, respectively, but the mark IPW head gains only 3. Changing the reader pair that defines the negatives yields between one and five detections for the selected detector, with at most one alert among the \RoleTest{} patients that are negative under every pair and under the official list (Fig.~\ref{fig:robust}b). The multi-view and 3D first-read heads detect 11 and 6 omissions, respectively, with every pair except the original C/D.
-
-\begin{table}[t]
-\centering\small
-\setlength{\tabcolsep}{3pt}
-\caption{\textbf{Fixed scores under two negative pools.} Each cell gives the count under the C/D cutoff $\to$ the count after excluding official-positive patients. Omit.: of 42 omissions; All: of 276 targets; Alert: of 90 common-negative test patients. Drop: cutoff drop in ranks of the original pool.}
-\label{tab:reference}
-\input{tables/reference_anchor}
-\end{table}
-
-\subsection{Effect on the method comparison}
-
-Averaged over the six matched draws, excluding official positives raises the omission recall of the selected method by \PairChange{} points \PairChangeCI{}. Its difference to mark IPW moves from $\PairRelativeP$ to $+\PairRelativeU$ points \PairRelativeUCI{}, a shift of \ReferenceInteraction{} points \ReferenceInteractionCI{} (Fig.~\ref{fig:effects}b). The same reversal occurs against mark stratification with the same estimator ($-4.4$ to $+4.4$ points), whereas the gap to first-read training remains negative. The gains in all-target recall increase under the new pool (Fig.~\ref{fig:effects}c), and the alert differences stay within about two points (Fig.~\ref{fig:effects}d), with realized alert rates of 7.2\% for paired-tail sampling and 6.1\% for mark IPW. The primary conclusion of Sec.~\ref{sec:locked} thus hinges on how the negative pool is defined rather than on the scores themselves.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{ct_evidence}
-\caption{\textbf{CT examples} (axial, 28\,mm field of view; circle: matching radius). (a)~The candidate that sets the C/D cutoff. (b)~A neighbouring calibration maximum on a scan with an official consensus nodule (purple frame). (c)~A test omission found only under the lower cutoff (blue frame). (d)~An omission below both cutoffs, outscored by a non-target candidate in its scan. Margins: best target logit minus the C/D and the new cutoff.}
-\label{fig:ct}
-\end{figure}
-
-\paragraph{Qualitative examples.}
-Fig.~\ref{fig:ct} relates these ranks to images. A consensus-positive maximum, shown in (b), leaves the negative pool with its score unchanged. A test omission, shown in (c), then exceeds the lower threshold with the same image, location and score. Other omissions, such as (d), remain far below both thresholds, which illustrates why ranking and calibration need to be assessed separately.

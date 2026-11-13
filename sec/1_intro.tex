@@ -1,0 +1,19 @@
+\section{Introduction}
+\label{sec:intro}
+
+Public lung nodule benchmarks inherit the disagreement of the radiologists who annotated them. In the Lung Image Database Consortium (LIDC), each scan was read by four thoracic radiologists, and many lesions were marked by only some of them~\cite{armato2007variability,armato2011}. Measured reader sensitivity also changes substantially with the panel used to define truth~\cite{armato2009truth}. Observer studies on LUNA16 likewise found nodules among detector outputs that the benchmark scores as false positives~\cite{setio2017,jacobs2016cad}. Following this line of work, we refer to a reference nodule that a given reader left unmarked as an \emph{omission}.
+
+Omissions affect a detection study twice. During training, an unmarked nodule is treated as background unless its candidate is re-examined, and since such \emph{audits} are costly, only a fraction of the candidates can be reviewed. During evaluation, a patient-level detector raises an alert when the highest candidate score in a scan exceeds a threshold, which is typically chosen so that a prescribed fraction $\alpha$ of negative calibration patients would alert. If a scan that contains an unmarked nodule is counted as negative, its high maximum raises the threshold for every test patient. In both stages, the outcome is governed by the same small set of high-scoring candidates.
+
+We study the two stages separately (Fig.~\ref{fig:teaser}). First, we ask which training candidates should be audited under a fixed budget so that omissions are revealed. Second, with every detector score and test target held fixed, we ask how much the composition of the negative calibration pool moves the alert threshold and the conclusions drawn at it.
+
+For the first question, we propose \emph{paired-tail sampling}, an audit design that concentrates reviews on candidates ranked highly within their scan or scored near the alert threshold, and up-weights candidates on which two weak readers disagree. Since every candidate keeps a known, nonzero inclusion probability, the audited labels can be corrected without bias during training. For the second question, we replay the same scores against a negative pool that additionally excludes patients with a nodule in the official LUNA16 consensus, and compare the resulting threshold shift with that obtained by removing the same number of patients at random.
+
+The results separate label acquisition from detection. At half the audit budget, paired-tail sampling reaches 79.4 of 92 training omissions in expectation, compared with 23.8 for mark-stratified review at the full budget (Fig.~\ref{fig:acquisition}). The detector trained on these labels, however, recovers fewer test omissions than the mark-stratified baseline and does not meet the prespecified non-inferiority margin (Sec.~\ref{sec:locked}). The reference replay shows why this comparison is fragile: excluding 14 consensus-positive calibration patients lowers the threshold of every learned detector by six to seven ranks, outside the 95\% range of random removal, and reverses the sign of the method comparison (Sec.~\ref{sec:tail}).
+
+In summary, our contributions are:
+\begin{itemize}\itemsep0pt
+\item a known-probability design for candidate-level audits, with the exact expected number of distinct lesions reached and budget-matched image-only, mark-based and uniform controls;
+\item a score-fixed diagnostic that isolates the effect of negative-pool membership on a patient-level threshold, with a size-matched random-removal control and all six reader-pair references;
+\item a locked evaluation on LUNA16 that disentangles label acquisition, within-scan ranking and threshold placement, and reports a negative primary result together with its cause.
+\end{itemize}
