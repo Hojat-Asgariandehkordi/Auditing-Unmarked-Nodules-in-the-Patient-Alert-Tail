@@ -19,14 +19,14 @@ The locked comparison uses the C/D reference and $\alpha=0.10$. On development s
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{acquisition}
-\caption{\textbf{Audit reach.} (a)~Expected number of the 92 training omissions with at least one audited candidate (Eq.~\ref{eq:reach}), at the half and base budgets; faint points are the six matched draws. (b)~At half budget, expected reach among the 35 omissions on which neither weak reader placed a mark.}
+\caption{\textbf{Audit reach.} (a)~Expected number of the 92 training omissions with at least one audited candidate (Eq.~\ref{eq:reach}) at the half and base budgets; small points are the six matched draws. (b)~Expected reach at half budget among the 35 omissions without any weak mark.}
 \label{fig:acquisition}
 \end{figure}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{effects}
-\caption{\textbf{Method comparison under two negative pools.} (a)~Mean omission recall against mean realized alerts over the calibration-derived cutoffs; open markers are the nominal $\alpha=0.10$ points of Tab.~\ref{tab:alloc}. (b--d)~Selected method minus each baseline, six-draw mean with 95\% patient-bootstrap intervals, using the same scores and the same 42 omissions, 276 targets and 90 common-negative test patients. Open circles: cutoff from C/D negatives; purple diamonds: cutoff after excluding patients with an official consensus nodule. The shaded region in (b) lies beyond the prespecified non-inferiority margin.}
+\caption{\textbf{Method comparison under two negative pools.} (a)~Mean omission recall against mean realized alert rate over calibration-derived thresholds; open markers are the nominal $\alpha=0.10$ points of Tab.~\ref{tab:alloc}. (b--d)~Selected method minus each baseline, averaged over the six matched draws, with 95\% intervals from 4,000 bootstrap resamples of the 265 test patients. Scores, targets (42 omissions, 276 nodules) and the 90 common negative test patients are identical under both thresholds. The shaded region in (b) lies beyond the non-inferiority margin.}
 \label{fig:effects}
 \end{figure*}
 
@@ -44,7 +44,7 @@ With full reference labels, 3D features recover \OriginalLearned{} of the 276 te
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{reference_tail}
-\caption{\textbf{Threshold displacement at fixed scores.} (a)~The 15 largest maxima of the 67 C/D-negative calibration patients for the selected detector. Purple diamonds have a nodule in the official LUNA16 consensus. Excluding the 14 such patients moves the cutoff from rank 62 to the score at rank 55, while removing 14 patients at random puts it within the shaded ranks 58--63 (central 95\%). (b)~Omissions found among the same 42 targets, and (c)~alerts among the same 90 common-negative test patients, under the two cutoffs.}
+\caption{\textbf{Threshold displacement at fixed scores.} (a)~The 15 largest maxima of the 67 C/D-negative calibration patients for the selected detector; purple diamonds mark patients with an official consensus nodule. Excluding the 14 such patients moves the threshold from rank 62 to the score at rank 55, whereas random removal of 14 patients places it within the shaded ranks 58--63 (central 95\% of 8,192 draws). (b)~Omissions found among the same 42 targets and (c)~alerts among the same 90 common negative test patients under the two thresholds.}
 \label{fig:tail}
 \end{figure*}
 
@@ -67,7 +67,7 @@ First-read training, which uses reader A's marks directly, achieves an omission 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{robustness}
-\caption{\textbf{Robustness of the threshold displacement.} (a)~Cutoff drop on the original rank scale after excluding official-positive patients (dots), against the central 95\% range (bar, with median tick) of 8,192 subset-matched random removals. (b)~Omissions found among the same 42 targets after calibrating on the negatives of each reader pair; the boxed column is the original C/D reference.}
+\caption{\textbf{Robustness of the threshold displacement.} (a)~Threshold drop on the original rank scale after excluding official positives (dots), against the central 95\% range and median (tick) of 8,192 subset-matched random removals. (b)~Omissions found among the same 42 targets when the negatives of each reader pair set the threshold; the boxed column is the original C/D reference.}
 \label{fig:robust}
 \end{figure*}
 

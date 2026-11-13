@@ -16,7 +16,7 @@ Fig.~\ref{fig:robust}a and Tab.~\ref{tab:reference} detail eight representative 
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3pt}
-\caption{\textbf{Fixed scores under two negative pools.} Each cell gives the count under the C/D cutoff $\to$ the count after excluding official-positive patients. Omit.: of 42 omissions; All: of 276 targets; Alert: of 90 common-negative test patients. Drop: cutoff drop in ranks of the original pool.}
+\caption{\textbf{Fixed scores under two negative pools.} Each cell gives the count under the C/D threshold $\to$ the count after excluding official positives. Omit.: of 42 omissions; All: of 276 targets; Alert: of 90 common-negative test patients. Drop: threshold drop in ranks of the original pool.}
 \label{tab:reference}
 \input{tables/reference_anchor}
 \end{table}
@@ -28,7 +28,7 @@ Averaged over the six matched draws, excluding official positives raises the omi
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{ct_evidence}
-\caption{\textbf{CT examples} (axial, 28\,mm field of view; circle: matching radius). (a)~The candidate that sets the C/D cutoff. (b)~A neighbouring calibration maximum on a scan with an official consensus nodule (purple frame). (c)~A test omission found only under the lower cutoff (blue frame). (d)~An omission below both cutoffs, outscored by a non-target candidate in its scan. Margins: best target logit minus the C/D and the new cutoff.}
+\caption{\textbf{CT examples} (axial, 28\,mm field of view; circle: matching radius). (a)~The candidate that sets the C/D threshold. (b)~A neighbouring calibration maximum on a scan with an official consensus nodule (purple frame). (c)~A test omission found only under the lower threshold (blue frame). (d)~An omission below both thresholds, outscored by a non-target candidate in its scan. Margins: best target logit minus the C/D and the new threshold.}
 \label{fig:ct}
 \end{figure}
 

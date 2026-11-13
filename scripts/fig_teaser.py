@@ -83,87 +83,122 @@ def draw_roster(ax, pi, hidden, color, title):
                     ax.text(x, y - 0.36, f"{pi[k]:.2f}", ha="center", va="top", fontsize=6.6,
                             color=color, weight="bold")
             if r["marks"][j]:
-                ax.text(x + 0.2, y + 0.17, r["marks"][j], fontsize=5.8, color=C["first"], ha="left", va="bottom")
+                ax.text(x + 0.2, y + 0.17, r["marks"][j], fontsize=6.5, color=C["first"], ha="left", va="bottom")
             k += 1
-        ax.text(8.0, y, f"+{N_HIDDEN} more:\n{hidden[row]:.1f} audits", fontsize=6.1, color=color,
+        ax.text(8.0, y, f"+{N_HIDDEN} more:\n{hidden[row]:.1f} audits", fontsize=6.6, color=color,
                 ha="left", va="center", linespacing=0.95)
     ax.set_xlim(-0.6, 9.9)
     ax.set_ylim(-0.75, 2.55)
     ax.set_xticks([])
     ax.set_yticks(range(3))
-    ax.set_yticklabels(["scan 3", "scan 2", "scan 1"], fontsize=6.6)
+    ax.set_yticklabels(["scan 3", "scan 2", "scan 1"], fontsize=7)
     ax.tick_params(axis="y", length=0, pad=1)
     for sp in ax.spines.values():
         sp.set_visible(False)
     ax.set_title(title, fontsize=7.6, color=color, pad=2)
 
 
+def pipeline(ax):
+    """(c) What is frozen, trained, calibrated and tested."""
+    from matplotlib.patches import FancyBboxPatch
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 10)
+    ax.axis("off")
+    stages = [(0, 60.8, "training: 445 patients", "#eef3f6"), (61.8, 86.2, "calibration: 175 patients", "#f3eef6"),
+              (87.2, 100, "test: 265 patients", "#eef6f1")]
+    for x0, x1, lab, col in stages:
+        ax.add_patch(FancyBboxPatch((x0, 0.2), x1 - x0, 9.4, boxstyle="round,pad=0,rounding_size=0.8",
+                                    fc=col, ec="none", zorder=0))
+        ax.text((x0 + x1) / 2, 0.9, lab, ha="center", va="bottom", fontsize=6.6, color=C["muted"], style="italic")
+    boxes = [
+        (6.0, "pilot detector\n(frozen): $s_i$, $r_i$", True),
+        (18.0, "leverage $h_i$ and\ndisagreement $v_i$", False),
+        (30.0, "audit $R_i$ with\nprob. $\\pi_i$ (Eq. 3)", False),
+        (42.0, "3D encoder\n(frozen): $X_i$", True),
+        (54.4, "linear head $g$\ntrained on $z_i$ (Eq. 5)", False),
+        (68.0, "patient score $S_j$:\nmax of $g$ in scan $j$", False),
+        (80.0, "threshold $T$ from\nnegatives $P$ or $U$", False),
+        (93.6, "omissions found,\nnegatives alerted", False),
+    ]
+    w, h, y = 11.0, 5.0, 3.0
+    for i, (x, txt, frozen) in enumerate(boxes):
+        ax.add_patch(FancyBboxPatch((x - w / 2, y), w, h, boxstyle="round,pad=0,rounding_size=0.6",
+                                    fc="white", ec=C["muted"], lw=0.9 if frozen else 0.6,
+                                    ls=(0, (2, 1.2)) if frozen else "-", zorder=2))
+        ax.text(x, y + h / 2, txt, ha="center", va="center", fontsize=6.6, color=C["first"], zorder=3,
+                linespacing=1.05)
+        if i < len(boxes) - 1:
+            x2 = boxes[i + 1][0]
+            ax.annotate("", xy=(x2 - w / 2 - 0.2, y + h / 2), xytext=(x + w / 2 + 0.2, y + h / 2),
+                        arrowprops=dict(arrowstyle="-|>", color=C["muted"], lw=0.7, mutation_scale=6), zorder=1)
+
+
 def main():
     pi_mark, pi_pair, hid_mark, hid_pair, B = allocate()
-    fig = plt.figure(figsize=(TEXT_W, 2.3))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1, 1, 1.18], wspace=0.06, left=0.045, right=0.995, bottom=0.2, top=0.81)
-    a1, a2 = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+    fig = plt.figure(figsize=(TEXT_W, 2.85))
+    gs = fig.add_gridspec(2, 3, width_ratios=[1, 1, 1.18], height_ratios=[1, 0.34], wspace=0.06, hspace=0.62,
+                          left=0.045, right=0.995, bottom=0.005, top=0.87)
+    a1, a2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
     draw_roster(a1, pi_mark, hid_mark, C["mark"], "Mark-stratified review")
     draw_roster(a2, pi_pair, hid_pair, C["paired"], "Paired-tail review (ours)")
     a2.set_yticklabels([])
     for ax in (a1, a2):
         ax.annotate("", xy=(9.6, -0.68), xytext=(-0.3, -0.68),
                     arrowprops=dict(arrowstyle="-|>", color=C["muted"], lw=0.6, mutation_scale=6))
-        ax.text(4.5, -0.72, "image score, high to low", fontsize=6.2, color=C["muted"], ha="center", va="top")
-    fig.text(0.045, 0.93, rf"$\bf{{(a)}}$ Which candidates get a second look? (same budget, {B:.1f} expected audits)",
+        ax.text(4.5, -0.72, "image score, high to low", fontsize=6.6, color=C["muted"], ha="center", va="top")
+    fig.text(0.045, 0.935, rf"$\bf{{(a)}}$ Which candidates get a second look? (equal budget, {B:.1f} expected audits)",
              fontsize=8.3, ha="left", va="bottom")
-    fig.text(0.045, 0.005, "Disc area = audit probability. A, B = weak reader marks. Ring = reference nodule "
-             "(thick: missed by reader A; number = its audit probability). Synthetic roster; probabilities from Eqs. (1)-(3).",
-             fontsize=6.3, color=C["muted"], ha="left", va="bottom")
 
     # ---------------------------------------------------- (b) the cutoff
-    b = fig.add_subplot(gs[2])
+    b = fig.add_subplot(gs[0, 2])
     vals_all = [p["logit"] for p in D.POOL]
     off = [p["official"] for p in D.POOL]
     test_score = D.T_P - 0.81          # Fig. 6(c): margin -0.81 to the C/D cutoff, +0.09 to the new one
     rows = [(1.0, "67 C/D-negative patients", D.T_P, False),
-            (0.0, "53 left after excluding official positives", D.T_U, True)]
+            (0.0, "53 after excluding official positives", D.T_U, True)]
     for y, lab, cut, drop in rows:
         b.plot([0.4, 3.0], [y, y], color=C["band"], lw=0.8, zorder=0)
         for v, o in zip(vals_all, off):
             if drop and o:
-                b.plot([v], [y], "D", ms=4.0, mfc="none", mec=C["official"], mew=0.6, alpha=0.45, zorder=2)
+                b.plot([v], [y], "D", ms=4.0, mfc="none", mec=C["official"], mew=0.6, alpha=0.4, zorder=2)
                 continue
-            b.plot([v], [y], "D" if o else "o", ms=4.4 if o else 4.0, color=C["official"] if o else C["neg"],
+            b.plot([v], [y], "D" if o else "o", ms=4.6 if o else 4.2, color=C["official"] if o else C["neg"],
                    mec="white", mew=0.3, zorder=2)
         col = C["paired"] if drop else C["muted"]
         b.plot([cut, cut], [y - 0.2, y + 0.2], color=col, lw=1.8, zorder=3)
-        b.text(cut + 0.04, y + 0.12, f"cutoff {cut:.2f}", ha="left", va="bottom", fontsize=6.5, color=col)
-        b.text(0.4, y + 0.36, lab, ha="left", va="bottom", fontsize=6.9, color=C["first"])
+        b.text(cut, y + 0.24, f"threshold {cut:.2f}", ha="center", va="bottom", fontsize=6.7, color=col)
+        b.text(3.0, y + 0.24, lab, ha="right", va="bottom", fontsize=6.9, color=C["first"])
         found = test_score > cut
-        b.plot([test_score], [y - 0.3], "*", ms=8.5, color=C["paired"] if found else "white",
+        b.plot([test_score], [y - 0.32], "*", ms=9, color=C["paired"] if found else "white",
                mec=C["paired"], mew=0.9, zorder=4)
-        b.text(test_score + 0.08, y - 0.3, "test omission: found" if found else "test omission: missed",
-               fontsize=6.6, va="center", ha="left", color=C["paired"] if found else C["muted"])
-    b.set_xlim(0.38, 3.75)
-    b.set_ylim(-0.55, 1.62)
+        b.text(test_score + 0.09, y - 0.32, "test omission found" if found else "test omission missed",
+               fontsize=6.9, va="center", ha="left", color=C["paired"] if found else C["muted"])
+    b.set_xlim(0.38, 3.05)
+    b.set_ylim(-0.62, 1.95)
     b.set_yticks([])
     b.spines["left"].set_visible(False)
     b.spines["bottom"].set_bounds(0.4, 3.0)
     b.set_xticks([0.5, 1.0, 1.5, 2.0, 2.5, 3.0])
-    b.set_xlabel("Patient maximum (logit), selected detector", labelpad=1, fontsize=7, x=0.38)
+    b.tick_params(axis="x", labelsize=6.8, pad=1)
+    b.set_xlabel("patient maximum (logit), selected detector", labelpad=1, fontsize=6.9)
     x0 = b.get_position().x0
-    fig.text(x0, 0.93, r"$\bf{(b)}$ Which negatives set the alert cutoff?", fontsize=8.3, ha="left", va="bottom")
-    for idx, xy, box, col in ((1, (1.42, 1.0), (3.42, 1.12), C["official"]),
-                              (2, (test_score, -0.3), (3.42, -0.12), C["paired"])):
+    fig.text(x0, 0.935, r"$\bf{(b)}$ Which negatives set the alert threshold?", fontsize=8.3, ha="left", va="bottom")
+    # CT crops: the official-positive maximum (rank 61, directly above its point) and the recovered omission
+    for idx, xy, box, col in ((1, (1.42, 1.0), (0.86, 1.62), C["official"]),
+                              (2, (test_score, -0.32), (2.62, -0.32), C["paired"])):
         im = np.asarray(Image.open(FIG / "ct" / f"crop-00{idx}.png").convert("L"))[110:410, 110:410]
-        ab = AnnotationBbox(OffsetImage(im, cmap="gray", zoom=0.1), xy, xybox=box, xycoords="data",
-                            boxcoords="data", pad=0.1, bboxprops=dict(ec=col, lw=1.1),
-                            arrowprops=dict(arrowstyle="-", color=col, lw=0.5, shrinkA=0, shrinkB=4,
-                                            connectionstyle="arc3,rad=0.0"))
+        arrow = dict(arrowstyle="-", color=col, lw=0.6, shrinkA=0, shrinkB=3) if idx == 1 else None
+        ab = AnnotationBbox(OffsetImage(im, cmap="gray", zoom=0.085), xy, xybox=box, xycoords="data",
+                            boxcoords="data", pad=0.08, bboxprops=dict(ec=col, lw=1.1), arrowprops=arrow)
         b.add_artist(ab)
-    b.text(3.42, 1.47, "official positive", fontsize=6.1, color=C["official"], ha="center", va="bottom")
-    b.text(3.42, 0.23, "test omission", fontsize=6.1, color=C["paired"], ha="center", va="bottom")
+
+    c = fig.add_subplot(gs[1, :])
+    pipeline(c)
+    fig.text(0.045, c.get_position().y1 + 0.012, r"$\bf{(c)}$ Pipeline: dashed boxes are frozen before auditing; the replay in (b) changes only the negatives that set $T$",
+             fontsize=8.3, ha="left", va="bottom")
     save(fig, "teaser")
     return pi_mark, pi_pair, hid_mark, hid_pair
 
 
 if __name__ == "__main__":
     pm, pp, hm, hp = main()
-    print("hidden audits mark", np.round(hm, 2), "paired", np.round(hp, 2))
-    print("omission pi mark", pm[[8, 17]].round(3), "paired", pp[[8, 17]].round(3))

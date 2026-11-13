@@ -70,8 +70,8 @@ def fig_cutoff():
             a.plot(p["rank"], p["logit"], "o", ms=4.4, color=C["neg"], mec="white", mew=0.4, zorder=3)
     a.axhline(D.T_P, color=C["muted"], lw=0.9, ls=(0, (1.5, 1.5)), zorder=1)
     a.axhline(D.T_U, color=C["paired"], lw=0.9, ls=(0, (4, 2)), zorder=1)
-    a.text(52.5, D.T_P + 0.05, f"C/D cutoff {D.T_P:.2f} (rank 62 of 67)", fontsize=6.4, color=C["muted"], va="bottom", ha="left")
-    a.text(67.6, D.T_U - 0.05, f"+ official cutoff {D.T_U:.2f} (rank 49 of 53)", fontsize=6.4, color=C["paired"], va="top", ha="right")
+    a.text(52.5, D.T_P + 0.05, f"C/D threshold {D.T_P:.2f} (rank 62 of 67)", fontsize=6.4, color=C["muted"], va="bottom", ha="left")
+    a.text(67.6, D.T_U - 0.05, f"after exclusion {D.T_U:.2f} (rank 49 of 53)", fontsize=6.4, color=C["paired"], va="top", ha="right")
     for rk, col in ((62, C["muted"]), (D.RANK_U_IN_P, C["paired"])):
         val = [p["logit"] for p in pool if p["rank"] == rk][0]
         a.plot([rk], [val], "o", ms=9, mfc="none", mec=col, mew=1.1, zorder=4)
@@ -86,7 +86,7 @@ def fig_cutoff():
     a.plot([], [], "o", color=C["neg"], ms=4, label="stays negative")
     a.plot([], [], "D", color=C["official"], ms=4, label="official consensus nodule")
     a.legend(loc="upper left", bbox_to_anchor=(0.0, 0.86), fontsize=6.4, handletextpad=0.2, labelspacing=0.2)
-    panel_title(a, "a", "Who sets the cutoff? (selected detector, top 15 shown)", x=-0.1)
+    panel_title(a, "a", "Largest calibration maxima of the selected detector", x=-0.1)
 
     heads = [("3D / first", "First read", C["first"]), ("3D / mark IPW", "Mark IPW", C["mark"]),
              ("3D / paired tail", "Paired tail", C["paired"])]
@@ -109,8 +109,11 @@ def fig_cutoff():
         ax.set_xlim(-0.8, 13 if key == "omit" else 10)
         ax.set_xticks([0, 4, 8, 12] if key == "omit" else [0, 3, 6, 9])
         ax.spines["left"].set_visible(False)
-        ax.set_xlabel("open: C/D cutoff;  filled: + official", fontsize=6.6, labelpad=1, color=C["muted"])
-        panel_title(ax, letter, title, x=-0.02 if key == "alert" else -0.02)
+        panel_title(ax, letter, title, x=-0.02)
+    h1, = ax.plot([], [], "o", ms=5, mfc="white", mec=C["first"], mew=1.2)
+    h2, = ax.plot([], [], "o", ms=5, color=C["first"])
+    fig.legend([h1, h2], ["C/D threshold", "after excluding official positives"], loc="lower center",
+               bbox_to_anchor=(0.79, -0.005), ncol=2, fontsize=6.8, handletextpad=0.25, columnspacing=1.0)
     save(fig, "reference_tail")
 
 
@@ -134,13 +137,15 @@ def fig_robustness():
     a.set_yticks(range(len(rows)))
     a.set_yticklabels([h.replace(" / ", " · ") for h in rows][::-1])
     a.tick_params(axis="y", length=0)
-    a.set_xlim(-2, 10)
+    a.set_xlim(-2, 13)
     a.set_xticks([0, 2, 4, 6, 8])
-    a.set_xlabel("Cutoff drop (ranks in the original pool)", labelpad=1)
-    a.plot([], [], "o", color=C["first"], ms=4, label="official membership")
-    a.plot([], [], color=C["band"], lw=3.2, label="random removal, 95% range")
-    a.legend(loc="upper right", fontsize=6.4, handlelength=1.4, borderaxespad=0.1)
-    panel_title(a, "a", "Removing the 14 patients vs. removing 14 at random", x=-0.42)
+    a.spines["bottom"].set_bounds(-2, 9)
+    a.set_xlabel("Threshold drop (ranks in the original pool)", labelpad=1)
+    a.plot([], [], "o", color=C["first"], ms=4, label="excluding\nofficial positives")
+    a.plot([], [], color=C["band"], lw=3.2, label="random removal\n(95% range)")
+    a.legend(loc="center right", bbox_to_anchor=(1.03, 0.55), fontsize=6.6, handlelength=1.3, borderaxespad=0.1,
+             labelspacing=0.8)
+    panel_title(a, "a", "Observed drop vs. random removal of 14 patients", x=-0.42)
 
     b = fig.add_subplot(gs[1])
     gr = list(D.READER_PAIRS)
@@ -159,7 +164,7 @@ def fig_robustness():
     for s in b.spines.values():
         s.set_visible(False)
     b.set_xlabel("Reader pair defining the calibration negatives (CD = original)", labelpad=1)
-    panel_title(b, "b", "Omissions found (of 42) for each reader pair", x=-0.38)
+    panel_title(b, "b", "Omissions found (of 42) by reader pair", x=-0.38)
     save(fig, "robustness")
 
 
@@ -167,7 +172,7 @@ def fig_robustness():
 def fig_effects():
     fig = plt.figure(figsize=(TEXT_W, 1.85))
     gs = fig.add_gridspec(1, 5, width_ratios=[1.15, 0.36, 1, 1, 1], wspace=0.1, left=0.055, right=0.99, bottom=0.21,
-                          top=0.86)
+                          top=0.8)
     a = fig.add_subplot(gs[0])
     style = {"paired": (C["paired"], "-", "Paired tail (half)"), "mark_ipw": (C["mark"], "-", "Mark IPW (base)"),
              "mark_same_head": (C["mark"], (0, (3, 1.5)), "Mark, same head (half)"), "first": (C["first"], "-", "First read")}
@@ -187,8 +192,8 @@ def fig_effects():
 
     base = list(D.REF_EFFECTS)
     refs = [("C/D", C["first"], True), ("+ official", C["official"], False)]
-    spec = [("omit", "Omission recall diff. (pp)", (-17, 12), "b"), ("all", "All-target recall diff. (pp)", (-11, 10), "c"),
-            ("alert", "Alert-rate diff. (pp)", (-5, 5), "d")]
+    spec = [("omit", "Omission recall", (-17, 12), "b"), ("all", "All-target recall", (-11, 10), "c"),
+            ("alert", "Negative-patient alerts", (-5, 5), "d")]
     for j, (key, lab, xl, letter) in enumerate(spec):
         ax = fig.add_subplot(gs[j + 2])
         if j == 0:
@@ -212,12 +217,12 @@ def fig_effects():
             ax.tick_params(axis="y", length=0)
         ax.set_xlim(*xl)
         ax.set_xticks({"omit": [-15, -10, -5, 0, 5, 10], "all": [-10, -5, 0, 5], "alert": [-4, -2, 0, 2, 4]}[key])
-        ax.set_xlabel(lab, labelpad=1)
-        panel_title(ax, letter, "Paired tail minus" if j == 0 else "", x=-0.02)
+        ax.set_xlabel("selected minus baseline (pp)", labelpad=1)
+        panel_title(ax, letter, lab, x=-0.02)
     h1, = fig.axes[1].plot([], [], "o", mfc="white", mec=C["first"], ms=4)
     h2, = fig.axes[1].plot([], [], "D", color=C["official"], ms=4)
-    fig.legend([h1, h2], ["cutoff from C/D negatives", "cutoff after excluding official-positive patients"],
-               loc="upper right", bbox_to_anchor=(0.995, 1.01), ncol=2, fontsize=6.6, handletextpad=0.25,
+    fig.legend([h1, h2], ["threshold from C/D negatives", "threshold after excluding official positives"],
+               loc="upper right", bbox_to_anchor=(0.995, 1.02), ncol=2, fontsize=6.8, handletextpad=0.25,
                columnspacing=1.0, borderaxespad=0.1)
     save(fig, "effects")
 

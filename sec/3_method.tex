@@ -1,7 +1,7 @@
 \section{Method}
 \label{sec:methods}
 
-We begin with the problem setup (Sec.~\ref{sec:setting}) and then describe the audit design (Sec.~\ref{sec:audit}), training from audited labels (Sec.~\ref{sec:training}), the patient-level alert threshold (Sec.~\ref{sec:cutoff}) and the score-fixed replay of the negative pool (Sec.~\ref{sec:replay}). Algorithm~\ref{alg:audit} summarizes the procedure.
+Our method has two parts that share the same detector scores: an audit design that decides which training labels to acquire, and a score-fixed replay that measures how the negative calibration pool sets the patient alert threshold. Algorithm~\ref{alg:audit} summarizes both.
 
 \subsection{Problem setup}
 \label{sec:setting}
