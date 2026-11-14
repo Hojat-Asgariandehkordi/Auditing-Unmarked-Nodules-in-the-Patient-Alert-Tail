@@ -53,7 +53,7 @@ def fig_acquisition():
 
 # ------------------------------------------------------------------ Fig. 4
 def fig_cutoff():
-    fig = plt.figure(figsize=(TEXT_W, 1.95))
+    fig = plt.figure(figsize=(TEXT_W, 1.7))
     gs = fig.add_gridspec(1, 3, width_ratios=[1.55, 1, 0.82], wspace=0.42, left=0.06, right=0.99, bottom=0.2, top=0.86)
     a = fig.add_subplot(gs[0])
     pool = D.POOL
@@ -119,7 +119,7 @@ def fig_cutoff():
 
 # ------------------------------------------------------------------ Fig. 5
 def fig_robustness():
-    fig = plt.figure(figsize=(TEXT_W, 1.9))
+    fig = plt.figure(figsize=(TEXT_W, 1.5))
     gs = fig.add_gridspec(1, 2, width_ratios=[1, 1.02], wspace=0.5, left=0.13, right=0.99, bottom=0.17, top=0.88)
     a = fig.add_subplot(gs[0])
     rows = list(D.REF_ANCHOR)
@@ -170,7 +170,7 @@ def fig_robustness():
 
 # ------------------------------------------------------------------ Fig. 3
 def fig_effects():
-    fig = plt.figure(figsize=(TEXT_W, 2.0))
+    fig = plt.figure(figsize=(TEXT_W, 1.8))
     gs = fig.add_gridspec(1, 5, width_ratios=[1.15, 0.36, 1, 1, 1], wspace=0.1, left=0.055, right=0.99, bottom=0.2,
                           top=0.76)
     a = fig.add_subplot(gs[0])
@@ -230,8 +230,7 @@ def fig_effects():
 
 # ------------------------------------------------------------------ Fig. 6
 def fig_ct():
-    fig, axes = plt.subplots(2, 2, figsize=(COL_W, 3.2), gridspec_kw=dict(wspace=0.06, hspace=0.42))
-    axes = axes.ravel()
+    fig, axes = plt.subplots(1, 4, figsize=(COL_W, 1.22), gridspec_kw=dict(wspace=0.05))
     frame = {"neg": C["neg"], "official": C["official"], "gain": C["paired"], "miss": C["muted"]}
     for i, (ax, d) in enumerate(zip(axes, D.CT)):
         im = np.asarray(Image.open(FIG / "ct" / f"crop-00{i}.png").convert("L"))
@@ -239,18 +238,18 @@ def fig_ct():
         ax.imshow(im, cmap="gray", vmin=0, vmax=255, extent=(0, D.CT_FOV_MM, D.CT_FOV_MM, 0))
         c = D.CT_FOV_MM / 2
         ax.add_patch(Circle((c, c), d["circle_mm"] / 2, fill=False, ec="#f6d860", lw=1.0))
-        ax.add_patch(Rectangle((0.8, D.CT_FOV_MM - 6.4), 6.6, 5.6, fc="black", ec="none", alpha=0.55))
-        ax.plot([1.6, 6.6], [D.CT_FOV_MM - 2.0] * 2, color="white", lw=2.0, solid_capstyle="butt")
-        ax.text(4.1, D.CT_FOV_MM - 2.8, "5 mm", color="white", ha="center", va="bottom", fontsize=6.6)
+        if i == 0:
+            ax.add_patch(Rectangle((1.2, D.CT_FOV_MM - 7.6), 9.6, 6.8, fc="black", ec="none", alpha=0.55))
+            ax.plot([3.5, 8.5], [D.CT_FOV_MM - 2.2] * 2, color="white", lw=1.6, solid_capstyle="butt")
+            ax.text(6.0, D.CT_FOV_MM - 3.1, "5 mm", color="white", ha="center", va="bottom", fontsize=6)
         ax.set_xticks([])
         ax.set_yticks([])
         for s in ax.spines.values():
             s.set_visible(True)
             s.set_color(frame[d["kind"]])
             s.set_linewidth(1.6 if d["kind"] in ("official", "gain") else 0.6)
-        ax.set_title(rf"$\bf{{({'abcd'[i]})}}$ {d['tag']}" + "\n" + d["title"], fontsize=7.2, pad=3, loc="left",
-                     linespacing=1.0)
-        ax.text(0.5, -0.07, d["note"], transform=ax.transAxes, ha="center", va="top", fontsize=7)
+        ax.set_title(f"({'abcd'[i]})", fontsize=7.2, pad=2, loc="left")
+        ax.text(0.5, -0.05, d["short"], transform=ax.transAxes, ha="center", va="top", fontsize=6.4, linespacing=1.0)
     save(fig, "ct_evidence")
 
 

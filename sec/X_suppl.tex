@@ -3,6 +3,8 @@
 \maketitlesupplementary
 \setcounter{section}{0}
 \renewcommand{\thesection}{\Alph{section}}
+\setcounter{table}{0}\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{figure}{0}\renewcommand{\thefigure}{S\arabic{figure}}
 
 
 This supplement provides details on the dataset and reference construction (Sec.~\ref{sec:s-data}), the representations and optimization (Sec.~\ref{sec:s-model}), the audit design and estimators (Sec.~\ref{sec:s-audit}), the evaluation protocol and additional results (Sec.~\ref{sec:s-eval}), the calibration reference analysis (Sec.~\ref{sec:s-ref}), and a simulation study of the estimator (Sec.~\ref{sec:s-sim}).
@@ -15,7 +17,7 @@ We indexed all 888 LUNA16 series and verified each MetaImage header and raw volu
 
 \begin{table}[t]
 \centering\small
-\caption{\textbf{Patient splits under the original C/D reference.} Neg. counts reference-negative patients. Obs. omit. counts first-reader omissions.}
+\caption{Patient splits under the original C/D reference. Neg. counts reference-negative patients. Obs. omit. counts first-reader omissions.}
 \label{tab:cohort}
 \input{tables/cohort}
 \end{table}
@@ -85,7 +87,7 @@ Paired intervals resample test patients 4,000 times with fixed weights across th
 
 \begin{table*}[t]
 \centering\small
-\caption{\textbf{Supervision and representation at the anchor draw.} Cells report detections among 42 observed omissions and 276 total targets, followed by alerts among 105 C/D-negative test patients. All audited methods use the same base-budget mark-stratified draw.}
+\caption{Supervision and representation at the anchor draw. Cells report detections among 42 observed omissions and 276 total targets, followed by alerts among 105 C/D-negative test patients. All audited methods use the same base-budget mark-stratified draw.}
 \label{tab:observed}
 \input{tables/observed}
 \end{table*}
@@ -93,28 +95,28 @@ Paired intervals resample test patients 4,000 times with fixed weights across th
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{locked_performance}
-\caption{\textbf{Locked operating points and paired effects.} (a)~Every point uses a calibration-derived cutoff; open markers denote nominal $\alpha=0.10$. (b)~Paired-tail omission recall minus each comparator with 95\% patient-bootstrap intervals (Tab.~\ref{tab:contrasts}). Filled: nominal threshold; open: calibration-only matched-alert check. The shaded region lies beyond the $-5$-point margin.}
+\caption{Locked operating points and paired effects. (a)~Every point uses a calibration-derived cutoff; open markers denote nominal $\alpha=0.10$. (b)~Paired-tail omission recall minus each comparator with 95\% patient-bootstrap intervals (Tab.~\ref{tab:contrasts}). Filled: nominal threshold; open: calibration-only matched-alert check. The shaded region lies beyond the $-5$-point margin.}
 \label{fig:locked}
 \end{figure*}
 
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Controlled bookmark cap.} Each cell reports detections at the anchor draw among the 151 imposed omissions and all 276 targets, followed by alerts among 105 reference-negative patients. The encoder in this setting is trained on the capped first-read labels.}
+\caption{Controlled bookmark cap. Each cell reports detections at the anchor draw among the 151 imposed omissions and all 276 targets, followed by alerts among 105 reference-negative patients. The encoder in this setting is trained on the capped first-read labels.}
 \label{tab:cap}
 \input{tables/bookmark}
 \end{table}
 
 \begin{table*}[!t]
 \centering\small
-\caption{\textbf{Paired effects at the locked and calibration-matched operating points.} Differences are percentage points except FP/scan. Patient intervals use the matched-draw mean.}
+\caption{Paired effects at the locked and calibration-matched operating points. Differences are percentage points except FP/scan. Patient intervals use the matched-draw mean.}
 \label{tab:contrasts}
 \input{tables/contrasts}
 \end{table*}
 
 \begin{table*}[!t]
 \centering\small
-\caption{\textbf{Audit allocation and workload,} averaged over the matched draws. Candidates: audited candidates; Pos.\ cand.: audited reference-positive candidates; Lesions and Omit.: distinct audited targets and omissions; Patients: patients with at least one audit; Exp.: expected reach (Eq.~4 of the main paper) over all training omissions and over the 35 omissions without any weak mark.}
+\caption{Audit allocation and workload, averaged over the matched draws. Candidates: audited candidates; Pos.\ cand.: audited reference-positive candidates; Lesions and Omit.: distinct audited targets and omissions; Patients: patients with at least one audit; Exp.: expected reach (Eq.~4 of the main paper) over all training omissions and over the 35 omissions without any weak mark.}
 \label{tab:costs}
 \input{tables/costs}
 \end{table*}
@@ -124,7 +126,7 @@ Paired intervals resample test patients 4,000 times with fixed weights across th
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{variability}
-\caption{\textbf{Audit, calibration and test-patient variation answer different questions.} Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and cutoffs fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central 95\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients.}
+\caption{Audit, calibration and test-patient variation answer different questions. Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and cutoffs fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central 95\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients.}
 \label{fig:variation}
 \end{figure*}
 
@@ -136,21 +138,21 @@ The C/D pool contains the patients without a concordant C/D contour under our ge
 
 \begin{table*}[t]
 \centering\small
-\caption{\textbf{Reference effects by feature family.} Each row summarizes distinct fixed score vectors. Score vectors: distinct score vectors among the 302 fitted configurations; Lower threshold: score vectors whose threshold decreases; Past size band: displacements beyond the central 95\% of random removals of the same size; More omissions: score vectors with strictly more omission detections under the lower threshold.}
+\caption{Reference effects by feature family. Each row summarizes distinct fixed score vectors. Score vectors: distinct score vectors among the 302 fitted configurations; Lower threshold: score vectors whose threshold decreases; Past size band: displacements beyond the central 95\% of random removals of the same size; More omissions: score vectors with strictly more omission detections under the lower threshold.}
 \label{tab:families}
 \input{tables/families}
 \end{table*}
 
 \begin{table*}[t]
 \centering\small
-\caption{\textbf{Paired-tail differences under each calibration reference.} The six matched fits are averaged within each patient. Both negative pools are evaluated on the same original targets and the 90 common negative test patients. Differences and patient-bootstrap intervals are in percentage points.}
+\caption{Paired-tail differences under each calibration reference. The six matched fits are averaged within each patient. Both negative pools are evaluated on the same original targets and the 90 common negative test patients. Differences and patient-bootstrap intervals are in percentage points.}
 \label{tab:alt}
 \input{tables/reference_effects}
 \end{table*}
 
 \begin{table}[t]
 \centering\small
-\caption{\textbf{Calibration on each reader pair} at the anchor draw. Cal.\ neg.: negative calibration patients under the pair; cells give omission detections out of 42 and alerts among the \RoleTest{} common negative test patients.}
+\caption{Calibration on each reader pair at the anchor draw. Cal.\ neg.: negative calibration patients under the pair; cells give omission detections out of 42 and alerts among the \RoleTest{} common negative test patients.}
 \label{tab:roles}
 \input{tables/roles}
 \end{table}
