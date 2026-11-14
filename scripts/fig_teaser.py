@@ -135,7 +135,7 @@ def pipeline(ax):
 
 def main():
     pi_mark, pi_pair, hid_mark, hid_pair, B = allocate()
-    fig = plt.figure(figsize=(TEXT_W, 2.48))
+    fig = plt.figure(figsize=(TEXT_W, 2.85))
     gs = fig.add_gridspec(2, 3, width_ratios=[1, 1, 1.18], height_ratios=[1, 0.34], wspace=0.06, hspace=0.62,
                           left=0.045, right=0.995, bottom=0.005, top=0.87)
     a1, a2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])

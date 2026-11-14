@@ -11,12 +11,12 @@ At the lower threshold, the same scores recover \PairHitsU{} of the 42 omissions
 
 We repeated the replay for all \NHeadRows{} fitted configurations, which yield \NHeads{} distinct score vectors over hand-crafted, multi-view and 3D features. The threshold falls for \LowerHeads{} of them, by a median of \MedianDrop{} ranks, and for \PastBand{} the drop exceeds the 95\% range of random removal. Since these score vectors share patients and include correlated training variants, the count indicates the breadth of the effect rather than independent replications.
 
-Fig.~\ref{fig:robust}a and Tab.~\ref{tab:reference} detail eight representative detectors, listing omissions found (of 42), targets found (of 276) and alerts among the 90 common negative test patients. The multi-view features are the embedding of an earlier 2.5D development model (Sec.~E of the supplement), and ``full ref.'' denotes heads trained on the full reference labels. The thresholds of the descriptor heads move by two ranks, within the random range, and both heads retain their two omission detections. In contrast, each of the six learned heads shown moves by six or seven ranks, outside the random range. A lower threshold produces additional detections only when the representation places targets between the two thresholds: the 3D first-read and full-reference heads gain 7 and 9 omissions, respectively, but the mark IPW head gains only 3. Changing the reader pair that defines the negatives yields between one and five detections for the selected detector, with at most one alert among the \RoleTest{} patients that are negative under every pair and under the official list (Fig.~\ref{fig:robust}b). The multi-view and 3D first-read heads detect 11 and 6 omissions, respectively, with every pair except the original C/D.
+Fig.~\ref{fig:robust}a and Tab.~\ref{tab:reference} detail eight representative detectors. The thresholds of the descriptor heads move by two ranks, within the random range, and both heads retain their two omission detections. In contrast, each of the six learned heads shown moves by six or seven ranks, outside the random range. A lower threshold produces additional detections only when the representation places targets between the two thresholds: the 3D first-read and full-reference heads gain 7 and 9 omissions, respectively, but the mark IPW head gains only 3. Changing the reader pair that defines the negatives yields between one and five detections for the selected detector, with at most one alert among the \RoleTest{} patients that are negative under every pair and under the official list (Fig.~\ref{fig:robust}b). The multi-view and 3D first-read heads detect 11 and 6 omissions, respectively, with every pair except the original C/D.
 
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{3pt}
-\caption{Counts under the C/D threshold $\to$ after excluding official positives, with the threshold drop in ranks of the original pool.}
+\caption{\textbf{Fixed scores under two negative pools.} Each cell gives the count under the C/D threshold $\to$ the count after excluding official positives. Omit.: of 42 omissions; All: of 276 targets; Alert: of 90 common-negative test patients. Drop: threshold drop in ranks of the original pool.}
 \label{tab:reference}
 \input{tables/reference_anchor}
 \end{table}
@@ -28,8 +28,9 @@ Averaged over the six matched draws, excluding official positives raises the omi
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{ct_evidence}
-\caption{CT examples (28\,mm field of view; circle: matching radius): (a)~the candidate setting the C/D threshold, (b)~a maximum on an official-positive scan, (c)~an omission found only under the lower threshold, (d)~an omission below both. Margins: best target logit minus each threshold.}
+\caption{\textbf{CT examples} (axial, 28\,mm field of view; circle: matching radius). (a)~The candidate that sets the C/D threshold. (b)~A neighbouring calibration maximum on a scan with an official consensus nodule (purple frame). (c)~A test omission found only under the lower threshold (blue frame). (d)~An omission below both thresholds, outscored by a non-target candidate in its scan. Margins: best target logit minus the C/D and the new threshold.}
 \label{fig:ct}
 \end{figure}
 
-Finally, Fig.~\ref{fig:ct} relates these ranks to images: a consensus-positive maximum (b) leaves the negative pool with its score unchanged, and a test omission (c) then exceeds the lower threshold with the same image, location and score. Other omissions, such as (d), remain far below both thresholds, which illustrates why ranking and calibration need to be assessed separately.
+\paragraph{Qualitative examples.}
+Fig.~\ref{fig:ct} relates these ranks to images. A consensus-positive maximum, shown in (b), leaves the negative pool with its score unchanged. A test omission, shown in (c), then exceeds the lower threshold with the same image, location and score. Other omissions, such as (d), remain far below both thresholds, which illustrates why ranking and calibration need to be assessed separately.
