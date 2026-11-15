@@ -138,3 +138,26 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15.pdf`. The current tex
   - the two-decimal leverage paragraph in the main text (now in the supplement);
   - the long next-steps paragraph (now one sentence).
 - **Needs author confirmation:** the ablation and factorial values come from the Blue PDF only (no source table in this repo).
+
+## Blue supplement and references (2026-11-15, evening)
+Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supplement, built on our pushed version).
+- **Taken from Blue's supplement:**
+  - **Acquisition controls:** full protocol. p_i is recovered by inverting Eq. 2. The policies share leverage, floor 0.0025, cap 0.95 and an expected budget of 3,950.15. The marks-only control uses u = 0.175 / 0.725 / 0.95. Reach is exact, the bootstrap details are given, and the caveats are stated.
+  - **Ablation table** (`tables/ablation.tex`): now has two-decimal values plus a bottom panel of complete-minus-control differences:
+    - vs image tail: 15.18 omissions, 16.50 pp [12.16, 20.65];
+    - vs marks only: 9.70, 10.54 [6.91, 13.94];
+    - vs image uncertainty: 3.27, 3.55 [1.32, 5.95].
+  - **Leverage factorial:** fully specified (Eq. 1 terms, floors, clipping, the 378,371-candidate roster, a constant arm that is not uniform sampling). There is a new table (`tables/leverage.tex`) that includes the expected patients opened. Its contrasts are 79.5 [74.0, 84.1] vs constant, 15.4 [9.6, 21.3] vs threshold alone, and +0.047 [−0.261, 0.593] vs rank alone.
+  - **Power tuning:** "power tuning leaves the omission endpoint unchanged in this setting".
+  - **Supplement LLM statement:** Codex wording now matches the main paper, and the BioRender sentence was added.
+- **Not taken:** the run seed, the 14-digit t0 (rounded to 1.566), three-decimal table values (shown to two decimals), and the "not prospectively preregistered" wording (it reads as review history). The text keeps "post hoc" and "specified before the contrasts were computed".
+- **References:** 30 → 47, every one checked online (venue, volume, pages):
+  - active learning: Settles 2009; Sener & Savarese ICLR 2018; Yoo & Kweon CVPR 2019; Yuan et al. CVPR 2021; Budd et al. MedIA 2021;
+  - sparse annotation: Niitani et al. CVPR 2019;
+  - multiple annotators: Dawid & Skene 1979; Raykar et al. JMLR 2010;
+  - nodule detectors: Dou et al. TBME 2017; Ardila et al. Nat Med 2019; Baumgartner et al. MICCAI 2021;
+  - allocation: Neyman 1934;
+  - conformal: Vovk et al. 2005; Bates et al. AoS 2023;
+  - evaluation fragility: Recht et al. ICML 2019; Beyer et al. 2020; Maier-Hein et al. Nat Commun 2018.
+- **Related Work:** each new reference is cited inside the existing sentences. One new sentence positions active learning: it adapts the model between queries without known inclusion probabilities. "Reader sensitivity varies with the panel" was removed there because the Introduction already says it.
+- Content still ends on page 8; the supplement is 8 pages.

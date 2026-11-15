@@ -129,19 +129,28 @@ Paired intervals resample test patients 4,000 times with fixed weights across th
 \end{figure*}
 
 \paragraph{Sources of the acquisition gain.}
-Table~\ref{tab:ablation} replays the saved training roster at half budget with leverage, expected budget, floor and cap unchanged and no retraining, replacing the working probability of Eq.~(2) of the main paper by $u_i=p_i$ (image uncertainty without marks) or by $p_i=0.5$ (marks only). Both controls were fixed before their reach was computed. The complete policy exceeds the image-uncertainty control by 3.3 omissions, or 3.6 points [1.3, 5.9] (conditional training-patient bootstrap, unadjusted). As $p_i$ predicts the union of the weak marks rather than the reference, the image-uncertainty control also changes the probability mapping, so the residual is a practical ablation rather than an identified causal effect of the marks.
+The acquisition controls of Sec.~4.2 of the main paper are exploratory: they were evaluated after the locked study, on the saved half-budget allocation of the training roster, whose reference had already been inspected. The image prediction $p_i$ is recovered from the saved working probability $u_i$ by inverting Eq.~(2) of the main paper within each mark count, and replaying the complete policy reproduces the saved inclusion probabilities. All four policies in Tab.~\ref{tab:ablation} share the frozen leverage $\bar h_i$, the square-root rule of Eq.~(3), the floor 0.0025, the cap 0.95 and the expected budget of 3,950.15 candidates; no label, auxiliary, head or detector is refitted. The image-uncertainty control sets $u_i=p_i$ and $v_i=\max\{p_i(1-p_i),0.006\}$, and the marks-only control fixes $p_i=0.5$, giving $u_i=0.175$, 0.725 and 0.95 for zero, one and two marks. Both controls were defined before their reach was computed, and neither is optimized. Reach is exact (Eq.~(4) of the main paper), so no audit draws are simulated. Intervals resample the 445 training patients 4,000 times, sum the reach within patients and divide by the resampled number of omissions. They condition on the fixed scores and allocation probabilities, omit refitting, calibration and design variation, and are not adjusted for multiplicity. Since $p_i$ is an out-of-fold propensity of either weak mark rather than a calibrated probability of a reference target, the image-uncertainty control also changes the probability mapping, and its difference to the complete policy is a practical ablation rather than an identified effect of the marks.
 
 \begin{center}
 \small
 \captionsetup{hypcap=false}
-\captionof{table}{Sources of the acquisition gain: expected training targets reached at half budget (post hoc replay, no retraining). Omit.: of 92 training omissions; No mark: of the 35 omissions without any weak mark; All: of 541 targets.}
+\captionof{table}{Sources of the acquisition gain at half budget (post hoc replay, no retraining). Top: expected training targets reached among the 92 omissions, the 35 omissions without any weak mark and all 541 targets. Bottom: complete policy minus each control, in expected omissions and in percentage points of omission reach, with conditional patient-bootstrap 95\% intervals.}
 \label{tab:ablation}
 \setlength{\tabcolsep}{2.2pt}
 \input{tables/ablation}
 \end{center}
 
 \paragraph{Leverage terms.}
-A post hoc factorial holds the paired proxy variance, model, candidate roster and expected budget fixed and varies only the leverage factor of Eq.~(1) of the main paper. Expected omission reach at half budget is 6.27 of 92 with constant leverage, 65.22 with the threshold term alone, 79.33 with the rank term alone and 79.38 with their maximum. The full leverage thus exceeds the rank term alone by only 0.043 expected omissions, or $+0.047$ points [$-0.261$, 0.593]. It reaches slightly fewer omissions without any weak mark (27.39 \vs 27.46), though more targets overall (483.98 \vs 476.83). No detector is retrained or policy selected from this diagnostic.
+This post hoc diagnostic holds the fitted model, the paired proxy variance, the 378,371-candidate roster, the probability bounds and the expected budget of 3,950.15 candidate decisions fixed, and varies only the leverage factor of Eq.~(1) of the main paper. It covers all 445 training patients, 541 targets and 92 omissions, of which 35 carry no weak mark; it was specified before the contrasts were computed, and replaying the full leverage reproduces the original allocation exactly. Rank leverage is $e^{-(r_i-1)/6}$, threshold leverage is $\sigma((s_i-t_0+1)/0.7)$ with the saved $t_0=1.566$, and full leverage takes their maximum. Every factor is floored at 0.002 and multiplied by $\sqrt{\max\{u_i(1-u_i),0.006\}}$, and each arm solves its own multiplier to attain the same expected budget, with probabilities clipped to $[0.0025, 0.95]$. Constant leverage keeps the same mark-conditioned variance, so it is neither uniform sampling nor the image-uncertainty control above. In omission reach, full leverage exceeds constant leverage by 79.5 points [74.0, 84.1], the threshold term alone by 15.4 points [9.6, 21.3] and the rank term alone by only $+0.047$ points [$-0.261$, 0.593] (Tab.~\ref{tab:leverage}). The intervals use 4,000 paired patient-bootstrap resamples conditional on the fitted scores, threshold and allocation; they are pointwise and unadjusted, and describe reach on known training references, not generalization or detector accuracy. All four arms are reported. Full leverage reaches slightly fewer omissions without any weak mark than the rank term alone (27.39 \vs 27.46); its higher all-target reach (483.98 \vs 476.83) is a distinct endpoint and does not establish an advantage in omission reach. Both arms open nearly every training patient, so the comparison concerns candidate decisions, not proportional savings in reading time.
+
+\begin{center}
+\small
+\captionsetup{hypcap=false}
+\captionof{table}{Leverage factorial at half budget: expected training targets reached among the 92 omissions, the 35 omissions without any weak mark and all 541 targets, and the expected number of patients with at least one audit.}
+\label{tab:leverage}
+\setlength{\tabcolsep}{2.6pt}
+\input{tables/leverage}
+\end{center}
 
 \section{Calibration Reference Analysis}
 \label{sec:s-ref}
