@@ -3,7 +3,7 @@
 Baseline: the source as received (first commit). No supervisor comments were provided, so the group's standing checklist was applied.
 
 ## Build
-- `main.tex` (8 pages of content + LLM statement and references = 9 pages) and `supplement.tex` (7 pages) each compile on their own: `latexmk -pdf main.tex supplement.tex`.
+- `main.tex` (8 pages of content; LLM statement and references on pages 9–10) and `supplement.tex` (8 pages) each compile on their own: `latexmk -pdf main.tex supplement.tex`.
 - To rebuild everything (figures + PDFs), run `./scripts/make_all.sh`.
 - `extended.tex` (the longer working draft) still compiles but was **not** updated. Its cross-references to the new sections are undefined.
 
