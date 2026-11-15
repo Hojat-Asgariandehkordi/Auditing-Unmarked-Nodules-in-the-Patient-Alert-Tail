@@ -103,3 +103,38 @@ Goal: every section should read as a CVPR paper, not as a generated report or an
    - an end-to-end or non-linear head trained on the paired-tail labels, to test whether more reach turns into more detection;
    - independent adjudication of the 14 excluded calibration patients' maxima;
    - the same replay on a second dataset.
+
+## Changes ported from the Blue review version (2026-11-15)
+Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15.pdf`. The current text, abstract style and figures were kept; only Blue's corrections and its acquisition ablation were brought in. Full comparison: project doc `paper3-unmarked-nodules-alert-tail/blue-review-comparison.md`.
+
+- **Claims corrected:**
+  - Sec. 4.2 no longer credits the 15.2-omission contrast or the gain on unmarked omissions to the reader marks. A new paragraph, "Sources of the acquisition gain", reports Blue's ablation:
+    - image uncertainty without marks reaches 76.1, marks alone 69.7, the complete policy 79.4;
+    - the complete policy is +3.3 omissions or 3.6 points [1.3, 5.9];
+    - on the 35 unmarked omissions, image uncertainty without marks reaches 27.8 against 27.4 for the complete policy.
+  - The abstract, intro and Discussion now attribute the gain to image ranking and image-based uncertainty.
+  - Sec. 4.5: "the failure occurs at the threshold rather than in the ranking" became "winning within a scan does not establish their ranking against negatives in other scans".
+  - The leverage example in Eq. 1 is made precise; the alert-rate guarantee is stated as a marginal upper bound; the loss statement now applies to "any fixed head".
+- **Honesty additions (numbers already in our supplement):**
+  - CIs condition on the fitted models and calibration patients;
+  - joint calibration resampling spans −14.3 to +7.1;
+  - first-read gap after exclusion: −6.0 [−12.2, −1.6];
+  - 202 detectors break down as 196/257 3D, 2/2 multi-view and 4/24 descriptor score vectors;
+  - multi-view is described as a frozen 2.5D checkpoint;
+  - an explicit sentence that the mark, uniform and image-tail allocations beat paired tail on test omissions;
+  - "without establishing superiority"; "simulated" re-reading; "a linear head on frozen 3D features".
+- **Supplement:**
+  - New paragraphs "Sources of the acquisition gain" (with the full ablation table, `tables/ablation.tex`) and "Leverage terms" (factorial: 6.27 / 65.22 / 79.33 / 79.38).
+  - Both are placed at the end of Sec. D so that the Sec. D floats do not cascade. The supplement is now 8 pages.
+- **Other:**
+  - The table caption defines "weighted".
+  - Captions and some sentences were tightened with Blue's wording.
+  - Fixed the hyphen-minus in the CI macros (`[-1.4, 9.5]` → `[−1.4, 9.5]`).
+  - Added the ChatGPT disclosure to both LLM statements.
+- **Layout:** content ends on page 8; the LLM statement starts page 9 (`\clearpage`) and references follow. This stops the stretched white gaps on page 8.
+- **Not taken from Blue:**
+  - its number-heavy abstract;
+  - the Fig. 1b toy-roster numbers repeated in the intro;
+  - the two-decimal leverage paragraph in the main text (now in the supplement);
+  - the long next-steps paragraph (now one sentence).
+- **Needs author confirmation:** the ablation and factorial values come from the Blue PDF only (no source table in this repo).

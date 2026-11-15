@@ -128,6 +128,21 @@ Paired intervals resample test patients 4,000 times with fixed weights across th
 \label{fig:variation}
 \end{figure*}
 
+\paragraph{Sources of the acquisition gain.}
+Table~\ref{tab:ablation} replays the saved training roster at half budget with leverage, expected budget, floor and cap unchanged and no retraining, replacing the working probability of Eq.~(2) of the main paper by $u_i=p_i$ (image uncertainty without marks) or by $p_i=0.5$ (marks only). Both controls were fixed before their reach was computed. The complete policy exceeds the image-uncertainty control by 3.3 omissions, or 3.6 points [1.3, 5.9] (conditional training-patient bootstrap, unadjusted). As $p_i$ predicts the union of the weak marks rather than the reference, the image-uncertainty control also changes the probability mapping, so the residual is a practical ablation rather than an identified causal effect of the marks.
+
+\begin{center}
+\small
+\captionsetup{hypcap=false}
+\captionof{table}{Sources of the acquisition gain: expected training targets reached at half budget (post hoc replay, no retraining). Omit.: of 92 training omissions; No mark: of the 35 omissions without any weak mark; All: of 541 targets.}
+\label{tab:ablation}
+\setlength{\tabcolsep}{2.2pt}
+\input{tables/ablation}
+\end{center}
+
+\paragraph{Leverage terms.}
+A post hoc factorial holds the paired proxy variance, model, candidate roster and expected budget fixed and varies only the leverage factor of Eq.~(1) of the main paper. Expected omission reach at half budget is 6.27 of 92 with constant leverage, 65.22 with the threshold term alone, 79.33 with the rank term alone and 79.38 with their maximum. The full leverage thus exceeds the rank term alone by only 0.043 expected omissions, or $+0.047$ points [$-0.261$, 0.593]. It reaches slightly fewer omissions without any weak mark (27.39 \vs 27.46), though more targets overall (483.98 \vs 476.83). No detector is retrained or policy selected from this diagnostic.
+
 \section{Calibration Reference Analysis}
 \label{sec:s-ref}
 
