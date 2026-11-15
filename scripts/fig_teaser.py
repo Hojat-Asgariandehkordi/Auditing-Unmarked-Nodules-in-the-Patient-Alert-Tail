@@ -133,24 +133,8 @@ def pipeline(ax):
                         arrowprops=dict(arrowstyle="-|>", color=C["muted"], lw=0.7, mutation_scale=6), zorder=1)
 
 
-def main():
-    pi_mark, pi_pair, hid_mark, hid_pair, B = allocate()
-    fig = plt.figure(figsize=(TEXT_W, 2.85))
-    gs = fig.add_gridspec(2, 3, width_ratios=[1, 1, 1.18], height_ratios=[1, 0.34], wspace=0.06, hspace=0.62,
-                          left=0.045, right=0.995, bottom=0.005, top=0.87)
-    a1, a2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
-    draw_roster(a1, pi_mark, hid_mark, C["mark"], "Mark-stratified review")
-    draw_roster(a2, pi_pair, hid_pair, C["paired"], "Paired-tail review (ours)")
-    a2.set_yticklabels([])
-    for ax in (a1, a2):
-        ax.annotate("", xy=(9.6, -0.68), xytext=(-0.3, -0.68),
-                    arrowprops=dict(arrowstyle="-|>", color=C["muted"], lw=0.6, mutation_scale=6))
-        ax.text(4.5, -0.72, "image score, high to low", fontsize=6.6, color=C["muted"], ha="center", va="top")
-    fig.text(0.045, 0.935, rf"$\bf{{(a)}}$ Which candidates get a second look? (equal budget, {B:.1f} expected audits)",
-             fontsize=8.3, ha="left", va="bottom")
-
-    # ---------------------------------------------------- (b) the cutoff
-    b = fig.add_subplot(gs[0, 2])
+def draw_cutoff(b):
+    """Real calibration maxima of the selected detector under both negative pools."""
     vals_all = [p["logit"] for p in D.POOL]
     off = [p["official"] for p in D.POOL]
     test_score = D.T_P - 0.81          # Fig. 6(c): margin -0.81 to the C/D cutoff, +0.09 to the new one
@@ -181,8 +165,6 @@ def main():
     b.set_xticks([0.5, 1.0, 1.5, 2.0, 2.5, 3.0])
     b.tick_params(axis="x", labelsize=6.8, pad=1)
     b.set_xlabel("patient maximum (logit), selected detector", labelpad=1, fontsize=6.9)
-    x0 = b.get_position().x0
-    fig.text(x0, 0.935, r"$\bf{(b)}$ Which negatives set the alert threshold?", fontsize=8.3, ha="left", va="bottom")
     # CT crops: the official-positive maximum (rank 61, directly above its point) and the recovered omission
     for idx, xy, box, col in ((1, (1.42, 1.0), (0.86, 1.62), C["official"]),
                               (2, (test_score, -0.32), (2.62, -0.32), C["paired"])):
@@ -194,6 +176,27 @@ def main():
     # leader from the recovered-omission star down and across to its crop (the crop is not on the score axis)
     b.plot([test_score, test_score, 2.36], [-0.42, -0.56, -0.56], color=C["paired"], lw=0.6, zorder=1)
 
+
+def main():
+    pi_mark, pi_pair, hid_mark, hid_pair, B = allocate()
+    fig = plt.figure(figsize=(TEXT_W, 2.85))
+    gs = fig.add_gridspec(2, 3, width_ratios=[1, 1, 1.18], height_ratios=[1, 0.34], wspace=0.06, hspace=0.62,
+                          left=0.045, right=0.995, bottom=0.005, top=0.87)
+    a1, a2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
+    draw_roster(a1, pi_mark, hid_mark, C["mark"], "Mark-stratified review")
+    draw_roster(a2, pi_pair, hid_pair, C["paired"], "Paired-tail review (ours)")
+    a2.set_yticklabels([])
+    for ax in (a1, a2):
+        ax.annotate("", xy=(9.6, -0.68), xytext=(-0.3, -0.68),
+                    arrowprops=dict(arrowstyle="-|>", color=C["muted"], lw=0.6, mutation_scale=6))
+        ax.text(4.5, -0.72, "image score, high to low", fontsize=6.6, color=C["muted"], ha="center", va="top")
+    fig.text(0.045, 0.935, rf"$\bf{{(a)}}$ Which candidates get a second look? (equal budget, {B:.1f} expected audits)",
+             fontsize=8.3, ha="left", va="bottom")
+
+    b = fig.add_subplot(gs[0, 2])
+    draw_cutoff(b)
+    x0 = b.get_position().x0
+    fig.text(x0, 0.935, r"$\bf{(b)}$ Which negatives set the alert threshold?", fontsize=8.3, ha="left", va="bottom")
     c = fig.add_subplot(gs[1, :])
     pipeline(c)
     fig.text(0.045, c.get_position().y1 + 0.012, r"$\bf{(c)}$ Pipeline: dashed boxes are frozen before auditing; the replay in (b) changes only the negatives that set $T$",
