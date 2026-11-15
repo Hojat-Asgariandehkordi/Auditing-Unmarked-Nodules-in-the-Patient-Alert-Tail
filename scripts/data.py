@@ -86,9 +86,9 @@ VARIABILITY = _REC["variability"]["values"]
 # (28.0 mm field of view: 5 mm scale bar = 18.6 pt of 104.2 pt). Text values are
 # the original panel labels.
 CT = [
-    dict(tag="Calibration", title="Sets the C/D threshold", note="rank 62 of 67", kind="neg", circle_mm=6.0),
-    dict(tag="Calibration", title="Consensus-positive scan", note="rank 61 of 67", kind="official", circle_mm=6.0),
-    dict(tag="Test", title="Found at lower threshold", note="margin $-0.81$ / $+0.09$", kind="gain", circle_mm=5.7),
-    dict(tag="Test", title="Persistent miss", note="margin $-6.68$ / $-5.79$", kind="miss", circle_mm=7.7),
+    dict(tag="Calibration", title="Sets the C/D threshold", note="rank 62 of 67", short="sets C/D $T$\nrank 62/67", kind="neg", circle_mm=6.0),
+    dict(tag="Calibration", title="Consensus-positive scan", note="rank 61 of 67", short="official pos.\nrank 61/67", kind="official", circle_mm=6.0),
+    dict(tag="Test", title="Found at lower threshold", note="margin $-0.81$ / $+0.09$", short="found\n$-0.81$ / $+0.09$", kind="gain", circle_mm=5.7),
+    dict(tag="Test", title="Persistent miss", note="margin $-6.68$ / $-5.79$", short="missed\n$-6.68$ / $-5.79$", kind="miss", circle_mm=7.7),
 ]
 CT_FOV_MM = 28.0
