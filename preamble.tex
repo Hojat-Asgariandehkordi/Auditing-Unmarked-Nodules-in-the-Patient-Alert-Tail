@@ -61,3 +61,19 @@
 \algrenewcommand\algorithmicrequire{\textbf{Input:}}
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \graphicspath{{figures/}}
+
+%% References from the supplement to the main paper. When main.tex builds the
+%% paper and the supplement together, \mainref is a live \ref. When the
+%% supplement is built alone (supplement.tex), the main paper's labels do not
+%% exist, so the stored number (second argument) is printed instead of "??".
+%% If a stored number no longer matches the paper, the combined build warns.
+\usepackage{refcount}
+\DeclareRobustCommand{\mainref}[2]{%
+  \ifcsname r@#1\endcsname
+    \ref{#1}%
+    \edef\mainrefNow{\getrefnumber{#1}}\edef\mainrefStored{#2}%
+    \ifx\mainrefNow\mainrefStored\else
+      \PackageWarningNoLine{mainref}{Stored number #2 for '#1' is out of date: the main paper now has \mainrefNow}%
+    \fi
+  \else #2\fi}
+\DeclareRobustCommand{\maineqref}[2]{\textup{(\mainref{#1}{#2})}}

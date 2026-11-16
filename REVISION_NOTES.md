@@ -264,3 +264,19 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
 - **Supplement:** the leverage-factorial paragraph and the image-uncertainty control use the same symbols (τ, δ, ω, ε_h, ε_v).
 - **Symbols checked for clashes:** τ, δ, ω, β, γ, ρ and ε were unused in the paper; a_j (reach), b (budget), c (bisection), α (alert rate), σ (logistic) and π (inclusion probability) were avoided.
 - **Layout:** 10 pages. Page 8 ends flush and the LLM statement opens page 9. Pages 5–8 have the same layout as before. With the supplement enabled, the document builds (18 pages) without errors.
+
+## "??" in the supplement when it is built separately (2026-11-16)
+- **Report:** with the supplement disabled in `main.tex` to submit the paper alone, "??" appeared for references in the supplement.
+- **Cause:** the main paper itself has no references into the supplement; its paper-only build (10 pages) had no undefined references. The supplement, however, refers to the main paper eight times (Eqs. 1–4 and Sec. 4.2). These were live `\eqref`/`\ref` links, and they only resolve when both parts are compiled together. Compiled on its own, the supplement printed "??".
+- **Fix:**
+  - `preamble.tex` defines `\mainref{label}{number}` and `\maineqref{label}{number}` (robust, with `refcount`):
+    - in the combined build they are live links;
+    - when the label does not exist (supplement compiled alone) they print the stored number;
+    - if a stored number differs from the paper's actual number, the combined build warns ("Stored number … is out of date").
+  - The eight references in `sec/X_suppl.tex` use them: Eq. (1) ×2, (2) ×2, (3), (4) ×2, Sec. 4.2.
+- **New `supplement.tex`:** builds the supplementary material alone as the separate PDF for submission (8 pages, page 1 = "Supplementary Material", tables numbered from 1). `scripts/make_all.sh` builds it too; `BUILD.md` explains the two-PDF submission.
+- **Checked from a clean copy:**
+  - paper alone: 10 pages, 0 undefined, no "??", text identical to before;
+  - paper + supplement: 18 pages, 0 undefined;
+  - supplement alone: 8 pages, 0 undefined, no "??", correct numbers.
+  - Updating an existing build in place (as Overleaf does) gives no errors, and the stale-number warning fires when a number is wrong.
