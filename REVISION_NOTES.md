@@ -205,3 +205,21 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
 - **Removed:** BioRender is no longer used in Fig. 1, so its caption credit was removed. The old toy roster and real-threshold dot plot were replaced by (b)–(d).
 - **Caption:** rewritten for (a)–(d).
 - **LLM statement:** made breakable. Page 8 is full with no stretched gaps; the statement starts at the bottom of page 8 and ends on page 9.
+
+## Fig. 1 = the authors' slide, set in Times (2026-11-16, final)
+- **Request:** "just change the font to times in this slide and use it for figure 1". `scripts/fig_overview.py` now reproduces the slide (`figures/fig1_slide_reference.png`) as given: layout, wording (including its bold words), colours, panel letters A–D, the 29 bar heights read from the slide pixels, and the illustrative scores 0.8 / 0.6 / 0.7. All text is Times (TeX Gyre Termes; STIX for math and bold).
+- **Vector:** text, bars, thresholds, arrows, boxes, bubbles and the candidate landscape.
+- **Raster:**
+  - the axial CT slice, cut from the slide (`figures/ct/slide_axial.png`) and upscaled 4×, with its ring redrawn as a vector circle;
+  - the patch thumbnails in B, cut from the real LUNA16 crops because the slide's thumbnails are about 19 px.
+- **Slide glitches corrected:**
+  - duplicate "Expert label"/"Corrected target" labels removed;
+  - overlapping "N_reduced" label set once;
+  - the purple (official-positive) bar left in the reduced pool removed;
+  - the second CT in D now shows the same nodule (it had an empty ring);
+  - D's dots and threshold lines are drawn at their labelled values (0.7, 0.8, 0.6).
+- **Caption** describes A–D and states that the scores in C and D are illustrative, citing the measured 1.524 → 0.630 (Sec. 5).
+- **Open (content, not changed):**
+  - In C, the purple bars sit at 0.68 and 0.50, below the 0.8 threshold. Removing patients below an upper-tail threshold cannot lower it; in the real data the official positives are among the largest maxima (Fig. 4a).
+  - Recolouring a few of the tallest bars purple would make the schematic consistent with the mechanism.
+- **Sharper CT:** the CT images come from a 720-px screenshot. The slide's original images (or the .pptx) would give a sharper print.
