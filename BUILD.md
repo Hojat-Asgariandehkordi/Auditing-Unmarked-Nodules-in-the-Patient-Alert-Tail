@@ -6,16 +6,16 @@ skeleton, and `preamble.tex` is the kit's preamble with this paper's extra packa
 
 | File | Role |
 |---|---|
-| `main.tex` | Main paper (review mode). Overleaf "Main document". |
+| `main.tex` | Main paper and supplement in one PDF (review mode). Overleaf "Main document". |
 | `preamble.tex` | Kit preamble + `algorithm`, `algpseudocode`, `placeins`, `tables/values.tex` macros |
 | `sec/teaser.tex` | Title + full-width Fig. 1 (calls `\maketitle`) |
 | `sec/0_abstract.tex` … `sec/8_llm_statement.tex` | Paper sections |
-| `sec/X_suppl.tex` | Supplementary material (uses the kit's `\maketitlesupplementary`) |
-| `supplement.tex` | Standalone build of `sec/X_suppl.tex` |
+| `sec/X_suppl.tex` | Supplementary material, appended after the references as in the kit (`\maketitlesupplementary`, pages restart at 1, sections A–F) |
 | `main.bib` | Bibliography |
 
-Build: `latexmk -pdf main.tex supplement.tex`, or `./scripts/make_all.sh` to also regenerate figures.
-To produce one PDF with the supplement appended (kit style), uncomment `\input{sec/X_suppl}` at the end of `main.tex`.
+Build: `latexmk -pdf main.tex`, or `./scripts/make_all.sh` to also regenerate figures.
+One PDF: pages 1–8 content, 9–10 LLM statement and references, 11–18 supplement.
+**Submission:** as the kit warns, split the PDF before uploading: the paper is pages 1–10 and the supplementary file is pages 11–18. Alternatively, comment out `\input{sec/X_suppl}` for the paper-only build.
 
 Camera-ready: switch to `\usepackage{cvpr}` in `main.tex`, fill in `\author{...}`, and add acknowledgements.
 The old extended working draft is kept, uncompiled, in `archive/extended-draft/`.

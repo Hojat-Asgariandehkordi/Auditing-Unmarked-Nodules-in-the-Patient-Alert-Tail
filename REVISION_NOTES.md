@@ -3,7 +3,7 @@
 Baseline: the source as received (first commit). No supervisor comments were provided, so the group's standing checklist was applied.
 
 ## Build
-- `main.tex` (8 pages of content; LLM statement and references on pages 9–10) and `supplement.tex` (8 pages) each compile on their own: `latexmk -pdf main.tex supplement.tex`.
+- `main.tex` builds one PDF in the kit's layout: 8 pages of content, LLM statement and references on pages 9–10, then the supplement (`sec/X_suppl.tex`, 8 pages, page numbers restart at 1): `latexmk -pdf main.tex supplement.tex`.
 - To rebuild everything (figures + PDFs), run `./scripts/make_all.sh`.
 - `extended.tex` (the longer working draft) still compiles but was **not** updated. Its cross-references to the new sections are undefined.
 
@@ -161,3 +161,12 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - evaluation fragility: Recht et al. ICML 2019; Beyer et al. 2020; Maier-Hein et al. Nat Commun 2018.
 - **Related Work:** each new reference is cited inside the existing sentences. One new sentence positions active learning: it adapts the model between queries without known inclusion probabilities. "Reader sensitivity varies with the panel" was removed there because the Introduction already says it.
 - Content still ends on page 8; the supplement is 8 pages.
+
+## Main paper and supplement in one PDF (2026-11-15, night)
+- Re-checked against the uploaded `author-kit-CVPR2027-v1-latex.zip`: `cvpr.sty` and `ieeenat_fullname.bst` are byte-identical to the project's copies.
+- **One document, kit pattern:** `main.tex` now `\input{sec/X_suppl}` after the bibliography (the kit's own commented line, uncommented). The supplement opens with the kit's `\clearpage`, `\setcounter{page}{1}`, `\maketitlesupplementary`.
+- **Removed:** `supplement.tex` and `supplement.pdf`. The supplement's LLM statement was identical to the main one, so a single statement remains, on page 9. `scripts/make_all.sh` and `BUILD.md` are updated.
+- **Supplement back-references are now live:** "Eq. (1)/(2)/(4) of the main paper" and "Sec. 4.2 of the main paper" became `\eqref{eq:leverage}`, `\eqref{eq:working}`, `\eqref{eq:reach}`, `\eqref{eq:allocation}` and `\ref{sec:reach}`.
+- **Hyperlinks:** supplement sections got unique link anchors (`\theHsection`), so "Sec. A" no longer jumps to main Section 1. The 8 duplicate page anchors that remain come from the kit's page reset and are harmless.
+- **Result:** 18 pages (1–8 content, 9–10 LLM statement and references, 11–18 supplement). No undefined references, no "??", fonts unchanged, empty PDF metadata.
+- **Before submitting:** split pages 11–18 off as the supplementary file, as the kit warns.
