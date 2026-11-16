@@ -3,7 +3,7 @@
 Baseline: the source as received (first commit). No supervisor comments were provided, so the group's standing checklist was applied.
 
 ## Build
-- `main.tex` builds one PDF in the kit's layout: 8 pages of content, LLM statement and references on pages 9–10, then the supplement (`sec/X_suppl.tex`, 8 pages, page numbers restart at 1): `latexmk -pdf main.tex supplement.tex`.
+- `main.tex` builds one PDF in the kit's layout: 8 pages of content, LLM statement and references on pages 9–10, then the supplement (`sec/X_suppl.tex`, 8 pages, page numbers restart at 1): `latexmk -pdf main.tex`.
 - To rebuild everything (figures + PDFs), run `./scripts/make_all.sh`.
 - `extended.tex` (the longer working draft) still compiles but was **not** updated. Its cross-references to the new sections are undefined.
 
