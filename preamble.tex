@@ -62,18 +62,23 @@
 \algrenewcommand\algorithmicensure{\textbf{Output:}}
 \graphicspath{{figures/}}
 
-%% References from the supplement to the main paper. When main.tex builds the
-%% paper and the supplement together, \mainref is a live \ref. When the
-%% supplement is built alone (supplement.tex), the main paper's labels do not
-%% exist, so the stored number (second argument) is printed instead of "??".
-%% If a stored number no longer matches the paper, the combined build warns.
+%% Cross-references between the main paper and the supplement. main.tex builds
+%% the paper with or without the supplement, and supplement.tex builds the
+%% supplement alone, so a label may not exist in the current build.
+%% \storedref{label}{value} is a live \ref when the label exists and prints the
+%% stored value otherwise, so no "??" appears. If a stored value no longer
+%% matches, the combined build warns ("Stored value ... is out of date").
+%%   \mainref, \maineqref : supplement -> main paper (e.g. Eq. (1), Sec. 4.2)
+%%   \suppsec             : main paper -> supplement ("Supp. Sec. D")
 \usepackage{refcount}
-\DeclareRobustCommand{\mainref}[2]{%
+\DeclareRobustCommand{\storedref}[2]{%
   \ifcsname r@#1\endcsname
     \ref{#1}%
-    \edef\mainrefNow{\getrefnumber{#1}}\edef\mainrefStored{#2}%
-    \ifx\mainrefNow\mainrefStored\else
-      \PackageWarningNoLine{mainref}{Stored number #2 for '#1' is out of date: the main paper now has \mainrefNow}%
+    \edef\storedrefNow{\getrefnumber{#1}}\edef\storedrefStored{#2}%
+    \ifx\storedrefNow\storedrefStored\else
+      \PackageWarningNoLine{storedref}{Stored value #2 for '#1' is out of date: the document now has \storedrefNow}%
     \fi
   \else #2\fi}
-\DeclareRobustCommand{\maineqref}[2]{\textup{(\mainref{#1}{#2})}}
+\DeclareRobustCommand{\mainref}[2]{\storedref{#1}{#2}}
+\DeclareRobustCommand{\maineqref}[2]{\textup{(\storedref{#1}{#2})}}
+\DeclareRobustCommand{\suppsec}[2]{Supp.~Sec.~\storedref{#1}{#2}}

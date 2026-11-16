@@ -280,3 +280,27 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - paper + supplement: 18 pages, 0 undefined;
   - supplement alone: 8 pages, 0 undefined, no "??", correct numbers.
   - Updating an existing build in place (as Overleaf does) gives no errors, and the stale-number warning fires when a number is wrong.
+
+## Main-paper pointers name the supplement section (2026-11-16)
+- **Request:** the main paper's pointers to the supplement did not say which part of the supplement.
+- **Change:** all ten "(supplement)" / "in the supplement" pointers now name the section, as "Supp. Sec. X":
+
+| Main paper | Content | Supplement |
+|---|---|---|
+| Sec. 4.1, data | matching rules and cohort details | A (Dataset and Reference Construction) |
+| Sec. 4.1, baselines | architectures and optimization | B (Representations and Optimization) |
+| Tab. 1 caption | tail-weighted objective | C (Audit Design and Estimation) |
+| Sec. 4.2 | acquisition-gain replay; leverage factorial | D (Evaluation Protocol and Additional Results) |
+| Sec. 4.4 | joint calibration resampling; bookmark-cap setting ("Supp. Sec. D reports …") | D |
+| Sec. 5.2 | frozen 2.5D multi-view checkpoint; per-family breakdown (196/257, 2/2, 4/24) | E (Calibration Reference Analysis) |
+| Sec. 5.3 | first-read gap after exclusion (−6.0 [−12.2, −1.6]) | E |
+
+- **Mechanism:** `\suppsec{label}{letter}` uses the same stored-value reference as `\mainref`. The generic command is now `\storedref`, and `\mainref`/`\maineqref`/`\suppsec` call it.
+  - In the combined build the letter is a live link.
+  - In the paper-only build the stored letter is printed (no "??").
+  - A wrong stored letter triggers a warning in the combined build (tested).
+- **Format:** section letters were used rather than supplement table numbers, because the tables are numbered 1, 2, … in the standalone supplement but continue the paper's numbering (3, 4, …) in the combined build.
+- **Checks:**
+  - paper alone: 10 pages, 0 undefined, no "??", every column ends at the same place as before (no line moved), and the LLM statement opens page 9;
+  - combined: 18 pages, 0 undefined, no stale warnings;
+  - supplement alone: 8 pages, 0 undefined.

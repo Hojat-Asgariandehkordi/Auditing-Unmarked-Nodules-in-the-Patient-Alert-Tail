@@ -9,7 +9,7 @@ skeleton, and `preamble.tex` is the kit's preamble with this paper's extra packa
 | `main.tex` | Main paper (review mode). With `\input{sec/X_suppl}` uncommented, main paper and supplement in one PDF. Overleaf "Main document". |
 | `supplement.tex` | Supplement alone, as the separate supplementary PDF (pages start at 1). |
 | `numbers.tex` | Every number stated in the paper, defined once |
-| `preamble.tex` | Kit preamble + `algorithm`, `algpseudocode`, `placeins`, and `\mainref`/`\maineqref` (supplement-to-paper references) |
+| `preamble.tex` | Kit preamble + `algorithm`, `algpseudocode`, `placeins`, and `\storedref` with `\mainref`/`\maineqref` (supplement → paper) and `\suppsec` (paper → supplement) |
 | `sec/teaser.tex` | Title + full-width Fig. 1 (calls `\maketitle`) |
 | `sec/0_abstract.tex` … `sec/8_llm_statement.tex` | Paper sections |
 | `sec/X_suppl.tex` | Supplementary material, appended after the references as in the kit (`\maketitlesupplementary`, pages restart at 1, sections A–F) |
@@ -21,7 +21,11 @@ With `\input{sec/X_suppl}` active: pages 1–8 content, 9–10 LLM statement and
 - paper: `main.tex` with `%\input{sec/X_suppl}` commented out (10 pages);
 - supplementary material: `supplement.tex` (8 pages). In Overleaf, set Menu → Main document to `supplement.tex`, recompile and download, then set it back to `main.tex`.
 
-The supplement refers to the main paper (Eqs. 1–4, Sec. 4.2) with `\mainref{label}{number}` / `\maineqref{label}{number}`. In the combined build these are live links. In `supplement.tex` the stored number is printed, so no "??" appears. If the main paper's numbering changes, the combined build warns: `Package mainref Warning: Stored number … is out of date`. Then update the number in `sec/X_suppl.tex`.
+Cross-references between the two parts store their value, so neither PDF shows "??":
+- the supplement refers to the main paper (Eqs. 1–4, Sec. 4.2) with `\mainref{label}{number}` / `\maineqref{label}{number}`;
+- the main paper points to supplement sections with `\suppsec{label}{letter}`, printed as "Supp. Sec. D" (ten places in Secs. 4–5 and the Tab. 1 caption).
+
+In the combined build these are live links; in a separate build the stored value is printed. If numbering or section order changes, the combined build warns: `Package storedref Warning: Stored value … is out of date`. Then update the stored value where it is used.
 
 Camera-ready: switch to `\usepackage{cvpr}` in `main.tex`, fill in `\author{...}`, and add acknowledgements.
 The old extended working draft is kept, uncompiled, in `archive/extended-draft/`.
