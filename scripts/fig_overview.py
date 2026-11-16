@@ -1,281 +1,314 @@
-"""Figure 1: method overview (a) above the toy-roster (b) and real-threshold (c) panels.
+"""Figure 1: overview in four panels, following the authors' slide layout.
 
-Panel (a) is drawn in vector form: panels, boxes, bars, thresholds, arrows and every label
-are placed in one coordinate system (inches), so each label sits inside its own shape and
-the layout uses the full width. Only four pictorial icons come from the BioRender art
-(figure 5186a2a8dbee86b88aec68cb, "H1"): the scanner with the training CT slice, the two
-readers, the magnifier and the test CT slice. They are cut out with their pastel
-background keyed to transparent. The extra (7th) candidate circle that BioRender drew on
-the training slice is inpainted, so the slice shows the six candidates listed in the bars.
+(a) The problem: a visible nodule left unmarked becomes a background label.
+(b) Paired-tail audit allocation: pilot scores and reader disagreement set audit
+    priorities; audited labels are corrected and train a linear head on a frozen encoder.
+(c) Score-fixed calibration replay: the 15 largest of the 67 C/D-negative calibration
+    maxima of the selected detector (recovered values, scripts/data.py) before and after
+    excluding patients with an official consensus nodule; thresholds 1.524 -> 0.630.
+(d) Consequence: the test omission of Fig. 6(c) (margins -0.81 / +0.09) is missed under
+    the original threshold and found under the lower one, with its score unchanged.
 
-Icon coordinates are pixels of the 1024-px BioRender preview and are scaled to the
-full-resolution export automatically when figures/biorender/overview_H1.png exists.
+Every element is drawn in vector form in one inch-based coordinate system; the only
+rasters are the real LUNA16 crops (figures/ct, 28 mm field of view). All text is Times.
 """
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Polygon, Circle, Rectangle
+from matplotlib.path import Path
 from PIL import Image
 
 from style import C, TEXT_W, save, FIG
-import fig_teaser as T
+import data as D
 
-PREVIEW_W = 1024.0
-SRC = [FIG / "biorender" / "overview_H1.png", FIG / "biorender" / "overview_H1_preview.jpg"]
-
-# icon boxes in preview pixels (x0, y0, x1, y1) and the panel colour they sit on
-BG_BLUE, BG_GREEN = (216, 232, 247), (224, 237, 217)
-ICONS = {
-    "ct_train": ((22, 210, 192, 360), BG_BLUE),
-    "readers": ((200, 226, 307, 298), BG_BLUE),
-    "magnifier": ((352, 168, 384, 200), BG_BLUE),
-    "ct_test": ((803, 246, 908, 338), BG_GREEN),
-}
-EXTRA_CIRCLE = (139, 266, 7)
-
-NAVY = C["neg"]
-MUTED = C["muted"]
-PURPLE = C["official"]
-BLUE = C["paired"]
-PANEL = {"train": "#d8e8f7", "cal": "#ece3f3", "test": "#e0edd9"}
-BOX_FACE, BOX_EDGE = "#f3f5f7", "#8d9aa5"
-A_W, A_H = TEXT_W, 2.40          # panel (a) in inches
+W, H = TEXT_W, 4.30
+NAVY, MUTED, PURPLE, BLUE = C["neg"], C["muted"], C["official"], C["paired"]
+AMBER = "#e0912f"
+TEAL = "#2a8c8c"
+BOX_EDGE = "#8d9aa5"
+HEAD_FACE, HEAD_EDGE = "#fbd6b6", "#d9893f"
+T_SCORE = D.T_P - 0.81            # test omission of Fig. 6(c): margin -0.81 / +0.09
 
 
-# ---------------------------------------------------------------- icons
-def load_art():
-    for p in SRC:
-        if p.exists():
-            return np.asarray(Image.open(p).convert("RGB")).copy(), p
-    raise FileNotFoundError(SRC)
+def ct(i):
+    return np.asarray(Image.open(FIG / "ct" / f"crop-00{i}.png").convert("L"))
 
 
-def icons():
-    img, src = load_art()
-    s = img.shape[1] / PREVIEW_W
-    S = lambda v: int(round(v * s))
-    mask = np.zeros(img.shape[:2], np.uint8)
-    cx, cy, r = EXTRA_CIRCLE
-    cv2.circle(mask, (S(cx), S(cy)), S(r), 255, -1)
-    img = cv2.inpaint(img, mask, max(3, S(4)), cv2.INPAINT_TELEA)
-    out = {}
-    for name, ((x0, y0, x1, y1), bg) in ICONS.items():
-        a = img[S(y0):S(y1), S(x0):S(x1)].astype(float)
-        if name == "readers":       # drop the leader line from reader B towards the candidate list
-            yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
-            tinted = a[..., 0] > a[..., 1] + 4          # purple line and its anti-aliased fringe
-            a[tinted & (xx > S(294 - x0))] = bg
-        if name == "ct_test":       # the reader icon overlapped the left frame of the slice
-            frame = np.median(a[S(320 - y0):S(330 - y0), S(805 - x0):S(809 - x0)].reshape(-1, 3), axis=0)
-            a[S(268 - y0):S(318 - y0), 0:S(812 - x0)] = frame
-            a[:, 0:S(804 - x0)] = bg
-        d = np.sqrt(((a - np.array(bg, float)) ** 2).sum(-1))
-        alpha = np.clip((d - 7.0) / 16.0, 0, 1)
-        out[name] = np.dstack([a / 255.0, alpha])
-    return out, src
+# ------------------------------------------------------------ drawing helpers
+def txt(ax, x, y, s, size=6.5, color="black", ha="center", va="center", **kw):
+    ax.text(x, y, s, fontsize=size, color=color, ha=ha, va=va, linespacing=0.95, zorder=6, **kw)
 
 
-def put(ax, icon, x0, y0, w):
-    h = w * icon.shape[0] / icon.shape[1]
-    ax.imshow(icon, extent=(x0, x0 + w, y0, y0 + h), interpolation="lanczos", zorder=3)
-    return h
+def rbox(ax, x0, y0, x1, y1, fc, ec="none", lw=0.7, ls="-", r=0.04, z=1):
+    ax.add_patch(FancyBboxPatch((x0, y0), x1 - x0, y1 - y0, boxstyle=f"round,pad=0,rounding_size={r}",
+                                fc=fc, ec=ec, lw=lw, ls=ls, zorder=z))
 
 
-# ---------------------------------------------------------------- vector glyphs
-def panel(ax, x0, y0, x1, y1, color):
-    ax.add_patch(FancyBboxPatch((x0, y0), x1 - x0, y1 - y0, boxstyle="round,pad=0,rounding_size=0.09",
-                                fc=color, ec="none", zorder=0))
+def arrow(ax, x0, y0, x1, y1, color=NAVY, lw=0.8):
+    ax.annotate("", xy=(x1, y1), xytext=(x0, y0), zorder=5,
+                arrowprops=dict(arrowstyle="-|>", color=color, lw=lw, mutation_scale=7, shrinkA=0, shrinkB=0))
 
 
-def box(ax, x0, y0, x1, y1, text, fc=BOX_FACE, ec=BOX_EDGE, ls="-", size=6.5, tx=None):
-    ax.add_patch(FancyBboxPatch((x0, y0), x1 - x0, y1 - y0, boxstyle="round,pad=0,rounding_size=0.04",
-                                fc=fc, ec=ec, lw=0.7, ls=ls, zorder=2))
-    ax.text((x0 + x1) / 2 if tx is None else tx, (y0 + y1) / 2, text, ha="center", va="center",
-            fontsize=size, linespacing=0.95, zorder=4)
+def image(ax, im, x0, y0, size, frame=None, lw=0.6):
+    ax.imshow(im, cmap="gray", vmin=0, vmax=255, extent=(x0, x0 + size, y0, y0 + size),
+              interpolation="lanczos", zorder=2)
+    if frame:
+        ax.add_patch(Rectangle((x0, y0), size, size, fill=False, ec=frame, lw=lw, zorder=3))
 
 
-def arrow(ax, x0, y0, x1, y1, color=NAVY):
-    ax.annotate("", xy=(x1, y1), xytext=(x0, y0), zorder=4,
-                arrowprops=dict(arrowstyle="-|>", color=color, lw=0.8, mutation_scale=7,
-                                shrinkA=0, shrinkB=0))
+def ring(ax, x, y, r, color, lw=1.2, ls="-"):
+    ax.add_patch(Circle((x, y), r, fill=False, ec=color, lw=lw, ls=ls, zorder=4))
 
 
-def snowflake(ax, x, y, r=0.05, color="#7f8e9a"):
+def crossed_box(ax, x, y, s=0.075, color="#3d6fa8", face="#dce7f3"):
+    ax.add_patch(Rectangle((x - s / 2, y - s / 2), s, s, fc=face, ec=color, lw=0.8, zorder=5))
+    ax.plot([x - s / 2, x + s / 2], [y - s / 2, y + s / 2], color=color, lw=0.7, zorder=6)
+    ax.plot([x - s / 2, x + s / 2], [y + s / 2, y - s / 2], color=color, lw=0.7, zorder=6)
+
+
+def person(ax, x, y, color=NAVY, w=0.16):
+    t = np.linspace(0, np.pi, 30)
+    ax.add_patch(Polygon(np.c_[x + 0.5 * w * np.cos(t), y + 0.52 * w * np.sin(t)], closed=True,
+                         fc=color, ec="none", zorder=4))
+    ax.add_patch(Circle((x, y + 0.74 * w), 0.24 * w, fc=color, ec="white", lw=0.5, zorder=4))
+
+
+def check(ax, x, y, s=0.045, color=BLUE, lw=1.4):
+    ax.plot([x - s, x - 0.35 * s, x + s], [y, y - 0.6 * s, y + 0.75 * s], color=color, lw=lw,
+            solid_capstyle="round", solid_joinstyle="round", zorder=6)
+
+
+def snowflake(ax, x, y, r=0.045, color="#7f8e9a"):
     for k in range(3):
         t = np.pi / 2 + k * np.pi / 3
         ax.plot([x - r * np.cos(t), x + r * np.cos(t)], [y - r * np.sin(t), y + r * np.sin(t)],
-                color=color, lw=0.8, solid_capstyle="round", zorder=4)
+                color=color, lw=0.8, solid_capstyle="round", zorder=6)
         for sgn in (-1, 1):
             bx, by = x + sgn * 0.58 * r * np.cos(t), y + sgn * 0.58 * r * np.sin(t)
             for dt in (-0.8, 0.8):
                 u = t + (0 if sgn > 0 else np.pi) + dt
                 ax.plot([bx, bx + 0.42 * r * np.cos(u)], [by, by + 0.42 * r * np.sin(u)],
-                        color=color, lw=0.7, solid_capstyle="round", zorder=4)
+                        color=color, lw=0.7, solid_capstyle="round", zorder=6)
 
 
-def person(ax, x, y, color, alpha=1.0, w=0.085):
-    """Simple patient glyph: head and shoulders, base at y."""
-    t = np.linspace(0, np.pi, 30)
-    ax.add_patch(Polygon(np.c_[x + 0.5 * w * np.cos(t), y + 0.52 * w * np.sin(t)], closed=True,
-                         fc=color, ec="none", alpha=alpha, zorder=3))
-    ax.add_patch(Circle((x, y + 0.74 * w), 0.25 * w, fc=color, ec="white", lw=0.4, alpha=alpha, zorder=3))
+def title(ax, x, y, letter, s):
+    ax.text(x, y, rf"$\bf{{({letter})}}$ {s}", fontsize=8.2, ha="left", va="center", zorder=6)
 
 
-def check(ax, x, y, s=0.07, color=BLUE):
-    ax.plot([x - s, x - 0.35 * s, x + s], [y, y - 0.6 * s, y + 0.75 * s], color=color, lw=1.6,
-            solid_capstyle="round", solid_joinstyle="round", zorder=4)
+def lung(cx, cy, rx, ry, side):
+    """Closed lung-like outline; side=-1 for the lung on the left of the image, +1 for the right."""
+    t = np.linspace(0, 2 * np.pi, 120)
+    x, y = np.cos(t), np.sin(t)
+    medial = (x * side) < 0
+    x = np.where(medial, x * 0.55, x)
+    y = y * (1 - 0.18 * (y < 0) * np.clip(x * side, 0, None))
+    return np.c_[cx + rx * x, cy + ry * y]
 
 
-def cross(ax, x, y, s=0.05, color="#b8312f"):
-    ax.plot([x - s, x + s], [y - s, y + s], color=color, lw=1.5, solid_capstyle="round", zorder=4)
-    ax.plot([x - s, x + s], [y + s, y - s], color=color, lw=1.5, solid_capstyle="round", zorder=4)
+# ------------------------------------------------------------ panels
+def panel_a(ax):
+    title(ax, 0.02, 4.22, "a", "The problem: nodules hidden in negative labels")
+    x0, y0, s = 0.05, 2.42, 1.48
+    image(ax, ct(3), x0, y0, s, frame=NAVY)
+    r = D.CT[3]["circle_mm"] / 2 / D.CT_FOV_MM * s
+    ring(ax, x0 + s / 2, y0 + s / 2, r, AMBER, lw=1.4)
+
+    rows = [("reference target", "#f8ead7", "dot", "nodule present"),
+            ("weak annotation", "#efefef", "empty", "nodule unmarked"),
+            ("training label", "#dfe9f5", "box", "background")]
+    for k, (lab, face, sym, desc) in enumerate(rows):
+        y = 3.86 - 0.235 * k
+        rbox(ax, 1.62, y - 0.095, 3.10, y + 0.095, face, r=0.05)
+        txt(ax, 1.67, y, lab, size=6.2, color=MUTED, ha="left")
+        if sym == "dot":
+            ax.add_patch(Circle((2.42, y), 0.038, fc=AMBER, ec="#b06a1c", lw=0.6, zorder=5))
+        elif sym == "empty":
+            ax.add_patch(Circle((2.42, y), 0.038, fc="white", ec="#9aa4ab", lw=0.7, zorder=5))
+        else:
+            crossed_box(ax, 2.42, y)
+        txt(ax, 2.50, y, desc, size=6.4, ha="left")
+
+    # candidate landscape: present but unmarked -> treated as background
+    rng = np.random.default_rng(7)
+    shapes = [lung(2.08, 2.80, 0.27, 0.33, -1), lung(2.66, 2.80, 0.27, 0.33, +1)]
+    for P in shapes:
+        ax.add_patch(Polygon(P, closed=True, fc="#f4f7fa", ec="#9aa4ab", lw=0.7, zorder=2))
+    pts = []
+    while len(pts) < 46:
+        p = rng.uniform([1.80, 2.48], [2.95, 3.12])
+        if any(Path(P).contains_point(p) for P in shapes):
+            pts.append(p)
+    pts = np.array(pts)
+    ax.plot(pts[:, 0], pts[:, 1], "o", ms=1.9, color="#9aa4ab", zorder=3)
+    hx, hy = 2.00, 2.90
+    ax.add_patch(Circle((hx, hy), 0.024, fc=AMBER, ec="none", zorder=4))
+    ring(ax, hx, hy, 0.06, AMBER, lw=1.0)
+    arrow(ax, 2.42, 3.29, 2.08, 2.97, color=MUTED)
+    txt(ax, 2.74, 3.205, "candidate landscape", size=6.1, color=MUTED)
+    txt(ax, 2.37, 2.36, r"present but unmarked $\rightarrow$ background", size=6.1, color=MUTED)
 
 
-def dashed(ax, x0, x1, y, color):
-    ax.plot([x0, x1], [y, y], color=color, lw=1.0, ls=(0, (4, 2.4)), zorder=4)
+def panel_b(ax):
+    title(ax, 0.02, 2.04, "b", "Our solution I: paired-tail audit allocation")
+    rbox(ax, 0.05, 0.92, 0.66, 1.40, "#eef2f5", ec=BOX_EDGE, ls=(0, (3, 2)))
+    snowflake(ax, 0.355, 1.30)
+    txt(ax, 0.355, 1.10, "pilot detector\n(frozen)", size=6.2)
 
+    # candidate patches from real crops: centre crops show the candidate, offset crops do not
+    crops = [ct(i) for i in range(4)]
 
-def titles(ax, x, title, sub):
-    ax.text(x, 2.215, title, ha="center", va="center", fontsize=7.9, zorder=4)
-    ax.text(x, 2.075, sub, ha="center", va="center", fontsize=6.6, color=MUTED, zorder=4)
+    def patch(i, dx, dy, z=0.46):
+        im = crops[i]
+        n = im.shape[0]
+        w = int(n * z)
+        cx, cy = n // 2 + int(dx * n), n // 2 + int(dy * n)
+        return im[cy - w // 2:cy + w // 2, cx - w // 2:cx + w // 2]
 
+    top = [(2, 0, 0, AMBER), (0, 0.22, -0.2, None), (1, 0.2, 0.0, AMBER),
+           (3, -0.22, 0.2, None), (1, -0.25, -0.25, None), (0, 0.0, 0.0, None)]
+    bot = [(3, 0, 0, TEAL), (2, -0.25, 0.22, None), (0, -0.05, 0.05, TEAL),
+           (1, 0.25, 0.25, None), (2, 0.22, -0.25, None), (3, 0.2, -0.22, None)]
+    s, g = 0.215, 0.035
+    for grid, ytop, lab, ylab in ((top, 1.80, "high score", 1.885), (bot, 0.96, "uncertainty & disagreement", 0.40)):
+        for k, (i, dx, dy, mark) in enumerate(grid):
+            c, rr = k % 3, k // 3
+            x0 = 0.84 + c * (s + g)
+            y0 = ytop - (rr + 1) * s - rr * g
+            image(ax, patch(i, dx, dy), x0, y0, s, frame="#c3ccd3", lw=0.4)
+            if mark:
+                ring(ax, x0 + s / 2, y0 + s / 2, 0.055, mark, lw=1.0)
+        txt(ax, 0.84 + 1.5 * s + g, ylab, lab, size=6.2, color=MUTED)
+    arrow(ax, 0.67, 1.24, 0.82, 1.54)
+    arrow(ax, 0.67, 1.08, 0.82, 0.72)
 
-# ---------------------------------------------------------------- panel (a)
-CAL_H = np.array([1.0, 0.83, 0.72, 0.66, 0.50, 0.43, 0.36, 0.30, 0.25])
-CAL_OFFICIAL = {0, 2, 3}
-BAR_SCALE = 0.50
-ROW_BASE = (1.38, 0.30)                       # baselines of the two threshold rows
-T_TOP = ROW_BASE[0] + CAL_H[1] * BAR_SCALE   # 2nd largest maximum of all negatives
-T_LOW = ROW_BASE[1] + CAL_H[4] * BAR_SCALE   # 2nd largest after excluding official positives
-TEST_H = 0.70                                 # test omission: between the two thresholds
+    # priority bubbles
+    rng = np.random.default_rng(3)
+    radii = np.sort(rng.uniform(0.022, 0.095, 24))[::-1]
+    placed = []
+    cx, cy = 2.10, 1.17
+    for r in radii:
+        for a in np.linspace(0, 40, 900):
+            p = np.array([cx + 0.0045 * a * np.cos(a), cy + 0.0045 * a * np.sin(a)])
+            if all(np.hypot(*(p - q)) >= r + rq + 0.006 for q, rq in placed):
+                placed.append((p, r))
+                break
+    for k, (p, r) in enumerate(placed):
+        col = TEAL if k < 6 else ("#9fc4c4" if k < 14 else "#d3dde2")
+        ax.add_patch(Circle(p, r, fc=col, ec="white", lw=0.4, zorder=3))
+    arrow(ax, 1.60, 1.52, 1.74, 1.36)
+    arrow(ax, 1.60, 0.74, 1.74, 0.96)
+    txt(ax, 2.10, 0.66, r"audit priority $\pi_i$", size=6.3)
 
-
-def draw_overview(ax, ic):
-    ax.set_xlim(0, A_W)
-    ax.set_ylim(0, A_H)
-    ax.set_aspect("equal")
-    ax.axis("off")
-    tr, ca, te = (0.03, 3.28), (3.43, 5.30), (5.45, 6.845)
-    panel(ax, tr[0], 0.03, tr[1], 2.34, PANEL["train"])
-    panel(ax, ca[0], 0.03, ca[1], 2.34, PANEL["cal"])
-    panel(ax, te[0], 0.03, te[1], 2.34, PANEL["test"])
-    arrow(ax, tr[1] + 0.015, 1.20, ca[0] - 0.012, 1.20)
-    arrow(ax, ca[1] + 0.015, 1.20, te[0] - 0.012, 1.20)
-    titles(ax, sum(tr) / 2, "Training (445 patients)", "which candidates to audit")
-    titles(ax, sum(ca) / 2, "Calibration (175 patients)", "who sets the alert threshold")
-    titles(ax, sum(te) / 2, "Test (265 patients)", "is an omission found?")
-
-    # --- training, top row: CT -> weak reads + frozen detector -> audit probabilities
-    put(ax, ic["ct_train"], 0.08, 1.06, 0.975)
-    arrow(ax, 1.065, 1.45, 1.17, 1.45)
-    put(ax, ic["readers"], 1.20, 1.38, 0.66)
-    ax.text(1.20 + 0.66 * 21 / 107, 1.905, "reader A", ha="center", va="center", fontsize=6.5, zorder=4)
-    ax.text(1.20 + 0.66 * 85 / 107, 1.905, "reader B", ha="center", va="center", fontsize=6.5, zorder=4)
-    box(ax, 1.20, 1.06, 1.86, 1.31, "frozen\ndetector", ls=(0, (3, 2)), size=6.3, tx=1.565)
-    snowflake(ax, 1.29, 1.185)
-    arrow(ax, 1.885, 1.45, 2.00, 1.45)
-
-    ax.text(2.62, 1.905, r"audit probability $\pi_i$", ha="center", va="center", fontsize=6.5, zorder=4)
-    pis = [1.0, 0.87, 0.07, 0.58, 0.05, 0.03]
-    for k, p in enumerate(pis):
-        y = 1.775 - 0.118 * k
-        ax.text(2.085, y, str(k + 1), ha="center", va="center", fontsize=6.2, zorder=4)
-        omit = k == 3
-        ax.add_patch(Circle((2.185, y), 0.03, fc="white", ec=PURPLE if omit else "#7d8a94",
-                            lw=1.5 if omit else 0.7, zorder=4))
-        ax.add_patch(Rectangle((2.26, y - 0.037), 0.90 * p, 0.074, fc=BLUE, ec="none", zorder=3))
-    ax.text(2.185, 1.06, r"$\cdots$", ha="center", va="center", fontsize=6.5, zorder=4)
-
-    # --- training, bottom row: audit -> corrected labels -> head g <- frozen encoder <- CT
-    enc = np.array([[0.12, 0.20], [0.12, 0.88], [0.82, 0.74], [0.82, 0.34]])
+    # expert label -> corrected target -> frozen encoder -> linear head
+    arrow(ax, 2.50, 1.17, 2.62, 1.17)
+    person(ax, 2.77, 1.06)
+    check(ax, 2.88, 1.33)
+    txt(ax, 2.77, 0.86, "expert\nlabel", size=6.3)
+    arrow(ax, 2.93, 1.17, 3.04, 1.17)
+    rbox(ax, 3.06, 0.98, 3.36, 1.38, "#fdf6ec", ec="#e3c79d")
+    ax.add_patch(Circle((3.21, 1.28), 0.04, fc=AMBER, ec="#b06a1c", lw=0.6, zorder=5))
+    crossed_box(ax, 3.21, 1.085)
+    arrow(ax, 3.21, 1.13, 3.21, 1.235, color=AMBER, lw=0.7)
+    txt(ax, 3.21, 0.84, "corrected\ntarget $z_i$", size=6.3)
+    arrow(ax, 3.37, 1.17, 3.44, 1.17)
+    enc = np.array([[3.45, 0.90], [3.45, 1.44], [3.80, 1.33], [3.80, 1.01]])
     ax.add_patch(Polygon(enc, closed=True, fc="#eceff1", ec=BOX_EDGE, lw=0.7, ls=(0, (3, 2)), zorder=2))
-    snowflake(ax, 0.215, 0.54)
-    ax.text(0.50, 0.54, "frozen 3D\nencoder", ha="center", va="center", fontsize=6.3,
-            linespacing=0.95, zorder=4)
-    arrow(ax, 0.70, 1.045, 0.70, 0.765)
-    box(ax, 0.98, 0.40, 1.52, 0.69, "trained\nhead $g$", fc="#fbd6b6", ec="#d9893f", size=6.5)
-    arrow(ax, 0.825, 0.545, 0.975, 0.545)
-    box(ax, 1.70, 0.40, 2.36, 0.69, "corrected\nlabels $z_i$", fc="white", ec=BLUE, size=6.5)
-    arrow(ax, 1.695, 0.545, 1.525, 0.545)
-    box(ax, 2.55, 0.37, 3.20, 0.72, "", fc="white", ec=BOX_EDGE)
-    put(ax, ic["magnifier"], 2.60, 0.455, 0.175)
-    ax.text(2.99, 0.545, "expert\naudit", ha="center", va="center", fontsize=6.5, linespacing=0.95, zorder=4)
-    arrow(ax, 2.545, 0.545, 2.365, 0.545)
-    arrow(ax, 2.875, 1.03, 2.875, 0.725)
-    ax.text(2.835, 0.875, r"sampled with prob. $\pi_i$", ha="right", va="center", fontsize=6.0,
-            color=MUTED, zorder=4)
+    snowflake(ax, 3.535, 1.30, r=0.035)
+    txt(ax, 3.615, 1.10, "frozen\nencoder", size=5.9)
+    arrow(ax, 3.81, 1.17, 3.87, 1.17)
+    rbox(ax, 3.88, 1.00, 4.16, 1.34, HEAD_FACE, ec=HEAD_EDGE)
+    txt(ax, 4.02, 1.17, "linear\nhead", size=6.0)
+    txt(ax, 2.10, 0.13, r"pilot score + uncertainty $\rightarrow$ audit priority $\rightarrow$ expert label"
+        r" $\rightarrow$ corrected target $\rightarrow$ linear head", size=6.2, color=MUTED)
 
-    # --- calibration: two rows of negative-patient maxima, before / after exclusion
-    pitch, bw = 0.175, 0.115
-    x0 = ca[0] + (ca[1] - ca[0] - (8 * pitch + bw)) / 2 + bw / 2
-    for row, base in enumerate(ROW_BASE):
-        for j, h in enumerate(CAL_H):
-            xc = x0 + j * pitch
-            official = j in CAL_OFFICIAL
-            col = PURPLE if official else NAVY
-            alpha = 0.22 if (official and row == 1) else 1.0
-            ax.add_patch(Rectangle((xc - bw / 2, base), bw, h * BAR_SCALE, fc=col, ec="none",
-                                   alpha=alpha, zorder=3))
-            person(ax, xc, base - 0.105, col, alpha)
-    dashed(ax, ca[0] + 0.08, ca[1] - 0.06, T_TOP, MUTED)
-    ax.text(ca[1] - 0.06, T_TOP + 0.045, r"threshold $T$", ha="right", va="bottom", fontsize=6.5,
-            color=MUTED, zorder=4)
-    ax.text(sum(ca) / 2, 1.115, "excluding official positives", ha="center", va="center", fontsize=6.6,
-            color=PURPLE, zorder=4)
-    dashed(ax, ca[0] + 0.08, ca[1] - 0.06, T_LOW, BLUE)
-    ax.text(ca[1] - 0.06, T_LOW + 0.045, "lower threshold", ha="right", va="bottom", fontsize=6.5,
-            color=BLUE, zorder=4)
 
-    # --- test: the same omission score against both thresholds
-    w_ct = 0.76
-    h_ct = w_ct * ic["ct_test"].shape[0] / ic["ct_test"].shape[1]
-    put(ax, ic["ct_test"], 5.50, 1.14 - h_ct / 2, w_ct)
-    ax.text(5.50 + w_ct / 2, 1.14 - h_ct / 2 - 0.075, "test omission", ha="center", va="center",
-            fontsize=6.4, color=BLUE, zorder=4)
-    xb, xm = 6.40, 6.665
-    for row, base in enumerate(ROW_BASE):
-        ax.add_patch(Rectangle((xb - bw / 2, base), bw, TEST_H * BAR_SCALE, fc=BLUE, ec="none", zorder=3))
-        person(ax, xb, base - 0.105, BLUE)
-    dashed(ax, 6.30, 6.80, T_TOP, MUTED)
-    dashed(ax, 6.30, 6.80, T_LOW, BLUE)
-    ax.text(6.255, T_TOP, r"threshold $T$", ha="right", va="center", fontsize=6.5, color=MUTED, zorder=4)
-    ax.text(6.255, T_LOW, "lower threshold", ha="right", va="center", fontsize=6.5, color=BLUE, zorder=4)
-    cross(ax, xm, 1.62, color=MUTED)
-    ax.text(xm, 1.49, "missed", ha="center", va="center", fontsize=6.5, color=MUTED, zorder=4)
-    check(ax, xm, 0.43)
-    ax.text(xm, 0.30, "found", ha="center", va="center", fontsize=6.5, color=BLUE, zorder=4)
+def panel_c(fig, ax):
+    title(ax, 3.22, 4.22, "c", "Our solution II: score-fixed calibration replay")
+    vals = np.array([p["logit"] for p in D.POOL])[::-1]           # rank 67 .. 53
+    off = np.array([p["official"] for p in D.POOL])[::-1]
+    x = np.arange(len(vals))
+    L, R = 3.60, 5.74
+    rows = [(3.30, D.T_P, False, MUTED), (2.47, D.T_U, True, BLUE)]
+    axes = []
+    for y0, cut, drop, col in rows:
+        b = fig.add_axes([L / W, y0 / H, (R - L) / W, 0.62 / H])
+        for xi, v, o in zip(x, vals, off):
+            if drop and o:
+                b.bar(xi, v, 0.72, fc="none", ec=PURPLE, lw=0.5, ls=(0, (2, 1.5)), alpha=0.45)
+            else:
+                b.bar(xi, v, 0.72, color=PURPLE if o else NAVY, lw=0)
+        b.axhline(cut, color=col, lw=1.0, ls=(0, (4, 2.4)), zorder=3)
+        b.set_xlim(-0.6, len(vals) - 0.4)
+        b.set_ylim(0, 3.0)
+        b.set_yticks([0, 1, 2, 3])
+        b.tick_params(axis="y", labelsize=6.0, pad=1, length=2)
+        b.set_xticks([])
+        for sp in ("top", "right"):
+            b.spines[sp].set_visible(False)
+        b.patch.set_alpha(0)
+        axes.append(b)
+        yl = y0 + cut / 3.0 * 0.62
+        txt(ax, 5.80, yl + 0.055, ("original threshold" if not drop else "lower threshold"), size=6.3,
+            color=col, ha="left")
+        txt(ax, 5.80, yl - 0.065, f"{cut:.2f}", size=6.3, color=col, ha="left")
+    top, bot = axes
+    top.text(0.99, 0.93, "official consensus nodule", transform=top.transAxes, ha="right", va="top",
+             fontsize=6.0, color=PURPLE)
+    top.add_patch(Rectangle((0.555, 0.86), 0.022, 0.08, transform=top.transAxes, fc=PURPLE, clip_on=False))
+    txt(ax, L, 3.99, "67 negative calibration patients (15 largest maxima)", size=6.3, ha="left")
+    bot.text(0.17, 0.97, "53 after excluding official positives", transform=bot.transAxes, ha="left",
+             va="top", fontsize=6.3)
+    txt(ax, (L + R) / 2, 3.185, "same scores, different negative pool", size=6.2, color=MUTED)
+    ax.text(3.33, 3.19, "patient maximum (logit)", rotation=90, fontsize=6.3, ha="center", va="center", zorder=6)
+    arrow(ax, 6.60, 3.50, 6.60, 2.72, color=BLUE, lw=1.0)
+
+
+def panel_d(fig, ax):
+    title(ax, 4.30, 2.04, "d", "Consequence: an unchanged nodule is found")
+    im = ct(2)
+    s = 0.98
+    r = D.CT[2]["circle_mm"] / 2 / D.CT_FOV_MM * s
+    for k, (x0, cut, col, lab, margin) in enumerate([(4.55, D.T_P, MUTED, "no alert", "$-0.81$"),
+                                                     (5.82, D.T_U, BLUE, "alert", "$+0.09$")]):
+        image(ax, im, x0, 0.90, s, frame=col if k else NAVY, lw=1.6 if k else 0.6)
+        ring(ax, x0 + s / 2, 0.90 + s / 2, r, AMBER, lw=1.3)
+        b = fig.add_axes([x0 / W, 0.40 / H, s / W, 0.42 / H])
+        b.axhline(cut, color=col, lw=1.0, ls=(0, (4, 2.4)))
+        b.plot([0.75], [T_SCORE], "o", ms=3.8, color=BLUE if k else NAVY, mec="white", mew=0.4, zorder=4)
+        b.text(0.82, T_SCORE + (0.0 if k == 0 else 0.13), margin, fontsize=6.0, va="center", ha="left",
+               color=BLUE if k else NAVY)
+        b.text(0.03, cut + (0.08 if k == 0 else -0.08), f"threshold {cut:.2f}", fontsize=5.9, color=col,
+               ha="left", va="bottom" if k == 0 else "top")
+        b.set_xlim(0, 1)
+        b.set_ylim(0.2, 1.8)
+        b.set_xticks([])
+        b.set_yticks([0.5, 1.0, 1.5])
+        b.tick_params(axis="y", labelsize=5.8, pad=1, length=2)
+        if k:
+            b.set_yticklabels([])
+        for sp in ("top", "right"):
+            b.spines[sp].set_visible(False)
+        b.patch.set_alpha(0)
+        txt(ax, x0 + s / 2, 0.29, lab, size=6.6, color=col if k else NAVY)
+    ax.text(4.315, 0.61, "score (logit)", rotation=90, fontsize=5.9, ha="center", va="center", zorder=6)
+    txt(ax, 5.68, 0.12, "threshold changes; the score stays fixed", size=6.2, color=MUTED)
 
 
 def main():
-    ic, src = icons()
-    bottom_h = 1.68
-    H = A_H + bottom_h + 0.30
-    fig = plt.figure(figsize=(TEXT_W, H))
-    ax = fig.add_axes([0, (bottom_h + 0.15) / H, 1, A_H / H])
-    draw_overview(ax, ic)
-    fig.text(0.004, (bottom_h + 0.15 + A_H) / H + 0.002, r"$\bf{(a)}$ Method overview", fontsize=8.3,
-             ha="left", va="bottom")
-
-    gs = fig.add_gridspec(1, 3, width_ratios=[1, 1, 1.18], wspace=0.06, left=0.045, right=0.995,
-                          bottom=0.02, top=(bottom_h - 0.27) / H)
-    pi_mark, pi_pair, hid_mark, hid_pair, B = T.allocate()
-    a1, a2 = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
-    T.draw_roster(a1, pi_mark, hid_mark, C["mark"], "Mark-stratified review")
-    T.draw_roster(a2, pi_pair, hid_pair, C["paired"], "Paired-tail review (ours)")
-    a2.set_yticklabels([])
-    for a in (a1, a2):
-        a.annotate("", xy=(9.6, -0.68), xytext=(-0.3, -0.68),
-                   arrowprops=dict(arrowstyle="-|>", color=MUTED, lw=0.6, mutation_scale=6))
-        a.text(4.5, -0.72, "image score, high to low", fontsize=6.6, color=MUTED, ha="center", va="top")
-    top_b = (bottom_h - 0.04) / H
-    fig.text(0.045, top_b, rf"$\bf{{(b)}}$ Audit probabilities on a toy roster (equal budget, {B:.1f} audits)",
-             fontsize=8.3, ha="left", va="bottom")
-    c = fig.add_subplot(gs[2])
-    T.draw_cutoff(c)
-    fig.text(c.get_position().x0, top_b, r"$\bf{(c)}$ Real thresholds of the selected detector",
-             fontsize=8.3, ha="left", va="bottom")
+    fig = plt.figure(figsize=(W, H))
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, W)
+    ax.set_ylim(0, H)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    panel_a(ax)
+    panel_b(ax)
+    panel_c(fig, ax)
+    panel_d(fig, ax)
+    ax.plot([0.02, W - 0.02], [2.17, 2.17], color="#d5dce1", lw=0.5, zorder=1)
+    ax.plot([3.17, 3.17], [2.24, 4.28], color="#d5dce1", lw=0.5, zorder=1)
+    ax.plot([4.25, 4.25], [0.02, 2.10], color="#d5dce1", lw=0.5, zorder=1)
     save(fig, "teaser")
-    print("icon source:", src.name)
 
 
 if __name__ == "__main__":
