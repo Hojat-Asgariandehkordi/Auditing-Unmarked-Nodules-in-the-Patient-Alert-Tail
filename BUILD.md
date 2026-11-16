@@ -14,7 +14,7 @@ skeleton, and `preamble.tex` is the kit's preamble with this paper's extra packa
 | `main.bib` | Bibliography |
 
 Build: `latexmk -pdf main.tex`, or `./scripts/make_all.sh` to also regenerate figures.
-One PDF: pages 1–8 content, 9–10 LLM statement and references, 11–18 supplement.
+With `\input{sec/X_suppl}` active: pages 1–8 content, 9–10 LLM statement and references, 11–18 supplement. It is currently commented out (Overleaf edit, 2026-11-16), so `main.tex` builds the 10-page paper alone.
 **Submission:** as the kit warns, split the PDF before uploading: the paper is pages 1–10 and the supplementary file is pages 11–18. Alternatively, comment out `\input{sec/X_suppl}` for the paper-only build.
 
 Camera-ready: switch to `\usepackage{cvpr}` in `main.tex`, fill in `\author{...}`, and add acknowledgements.
