@@ -223,3 +223,12 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - In C, the purple bars sit at 0.68 and 0.50, below the 0.8 threshold. Removing patients below an upper-tail threshold cannot lower it; in the real data the official positives are among the largest maxima (Fig. 4a).
   - Recolouring a few of the tallest bars purple would make the schematic consistent with the mechanism.
 - **Sharper CT:** the CT images come from a 720-px screenshot. The slide's original images (or the .pptx) would give a sharper print.
+
+## Page 8 filled; LLM statement on page 9 (2026-11-16)
+- **Request:** "make it a bit longer to fill 8 pages and push the llm usage to the 9th page".
+- **Added** (Sec. 6, end of the first paragraph, about five lines):
+  > The audit remains useful in its own right: because every candidate is audited with a known probability, the same sample gives an unbiased estimate of the proportion of positives among the candidates that the first reader left unmarked, whatever detector is trained afterwards, so the completeness of the weak labels can be reported before detectors are compared.
+  - Basis: the Horvitz–Thompson property stated in Sec. 3 and the estimand of the supplement's controlled simulation (Sec. D). No new numbers.
+- **LLM statement:** `sec/8_llm_statement.tex` now starts with `\clearpage`, so it always begins at the top of page 9, followed by the references.
+- **Layout:** page 8 ends flush in both columns with no gap; nothing else moved (Fig. 1 still on page 2; 10 pages). Nothing was removed.
+- **Note:** page 8 is now exactly full. An edit that adds a line anywhere in Secs. 5–6 will push the last line of Sec. 6 onto page 9; shorten by the same amount.
