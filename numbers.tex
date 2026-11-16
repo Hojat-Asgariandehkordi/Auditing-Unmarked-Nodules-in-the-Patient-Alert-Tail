@@ -1,0 +1,179 @@
+% numbers.tex: every number stated in the paper, defined once.
+% The text, captions, algorithm and the table cells quoted in the text use these
+% variables, so changing a value here changes it everywhere it appears.
+% Loaded from main.tex right after the preamble. Units in brackets.
+%
+% --- Data and cohort (Sec. 4.1) ---
+\newcommand{\NScans}{888}% LUNA16 scans
+\newcommand{\FitSubsets}{0, 1 and 3--5}% official LUNA16 subsets: fitting
+\newcommand{\CalSubsets}{2 and 6}% official LUNA16 subsets: calibration
+\newcommand{\TestSubsets}{7--9}% official LUNA16 subsets: test
+\newcommand{\NFit}{445}% fitting (training) patients
+\newcommand{\NCal}{175}% calibration patients
+\newcommand{\NTest}{265}% test patients
+\newcommand{\NOmitTrain}{92}% training omissions
+\newcommand{\NOmitTest}{42}% test omissions
+\newcommand{\NTargetTrain}{541}% training targets
+\newcommand{\NTargetTest}{276}% test targets
+\newcommand{\NOmitUnmarked}{35}% training omissions without any weak mark
+\newcommand{\PCal}{67}% C/D-negative calibration patients (pool P)
+\newcommand{\UCal}{53}% of these, also negative under the official list (pool U)
+\newcommand{\NExcluded}{14}% calibration patients excluded (P minus U)
+\newcommand{\PTest}{105}% C/D-negative test patients
+\newcommand{\UTest}{90}% common negative test patients
+\newcommand{\RoleTest}{69}% test patients negative under every reader pair and the official list
+\newcommand{\NOmitBookmark}{151}% imposed test omissions, largest-mark-only setting (supplement)
+\newcommand{\NCalNegCand}{45,541}% candidates on C/D-negative calibration scans
+\newcommand{\NSingleContour}{74}% of these, near a contour drawn by only C or D
+%
+% --- Representations and protocol (Secs. 3.1, 4.1) ---
+\newcommand{\MinRadiusMM}{3}% minimum matching radius [mm]
+\newcommand{\NDescriptors}{32}% hand-crafted descriptors
+\newcommand{\EmbedDim}{32}% 3D CNN embedding dimension
+\newcommand{\PatchMM}{24}% 3D CNN patch size [mm]
+\newcommand{\NDevPatients}{267}% development patients for the 3D CNN
+\newcommand{\AlphaNom}{0.10}% nominal alert rate
+\newcommand{\AlphaPct}{10}% nominal alert rate [%]
+\newcommand{\NIMargin}{-5}% non-inferiority margin [points]
+\newcommand{\CILevel}{95}% interval level [%]
+\newcommand{\NBoot}{4,000}% bootstrap samples
+\newcommand{\NRandom}{8,192}% random removals
+\newcommand{\CTFovMM}{28}% field of view of the CT examples [mm]
+%
+% --- Audit design constants (Sec. 3.2, Eqs. 1-3) ---
+\newcommand{\RankScale}{6}% rank decay of the leverage
+\newcommand{\ScoreOffset}{1}% score term: offset below t_0 [logits]
+\newcommand{\ScoreWidth}{0.7}% score term: width
+\newcommand{\ExLevRank}{0.61}% worked example: rank term
+\newcommand{\ExLevScore}{0.50}% worked example: score term
+\newcommand{\ExFarRank}{200}% worked example: low-ranked candidate
+\newcommand{\WpZeroSlope}{0.35}% working probability, no mark
+\newcommand{\WpOneBase}{0.55}% working probability, one mark: intercept
+\newcommand{\WpOneSlope}{0.35}% working probability, one mark: slope
+\newcommand{\WpTwoBase}{0.92}% working probability, two marks: intercept
+\newcommand{\WpTwoSlope}{0.06}% working probability, two marks: slope
+\newcommand{\VarFloor}{0.006}% variance floor
+\newcommand{\VarMax}{0.25}% maximum Bernoulli variance
+\newcommand{\LevFloor}{0.002}% leverage floor
+\newcommand{\ProbFloor}{0.005}% inclusion-probability floor (times b)
+\newcommand{\ProbCap}{0.95}% inclusion-probability cap
+\newcommand{\HalfBudget}{0.5}% half-budget factor b
+\newcommand{\MarkPiZero}{0.02}% mark stratification, no mark (times b)
+\newcommand{\MarkPiOne}{0.35}% mark stratification, one mark (times b)
+\newcommand{\MarkPiTwo}{0.20}% mark stratification, two marks (times b)
+\newcommand{\MarksOnlyP}{0.5}% constant p_i of the marks-only ablation
+%
+% --- Alert threshold (Secs. 3.4-3.5) ---
+\newcommand{\KRawP}{61.2}% (n+1)(1-alpha) for pool P
+\newcommand{\PRank}{62}% threshold rank in pool P
+\newcommand{\AlertBoundNumP}{6}% alert-rate bound for P: numerator
+\newcommand{\AlertBoundDenP}{68}% alert-rate bound for P: denominator
+\newcommand{\AlertBoundP}{8.8}% alert-rate bound for P [%]
+\newcommand{\KRawU}{48.6}% (n+1)(1-alpha) for pool U
+\newcommand{\URank}{49}% threshold rank in pool U
+\newcommand{\AlertBoundNumU}{5}% alert-rate bound for U: numerator
+\newcommand{\AlertBoundDenU}{54}% alert-rate bound for U: denominator
+\newcommand{\AlertBoundU}{9.3}% alert-rate bound for U [%]
+%
+% --- Audit reach (Sec. 4.2, Fig. 2) ---
+\newcommand{\AuditsPair}{3,940}% audits, paired tail, half budget
+\newcommand{\AuditsMark}{7,930}% audits, mark stratification, base budget
+\newcommand{\ReachPair}{79.4}% omissions reached, paired tail, half budget
+\newcommand{\ReachPairRound}{79}% the same, rounded (abstract)
+\newcommand{\ReachMark}{23.8}% mark stratification, base budget
+\newcommand{\ReachImage}{64.2}% image tail, half budget
+\newcommand{\ReachMarkHalf}{13.0}% mark stratification, half budget
+\newcommand{\ReachUniform}{1.4}% uniform, half budget
+\newcommand{\ReachGain}{15.2}% paired tail minus image tail
+\newcommand{\ReachGainMin}{10}% per-draw minimum of that gain
+\newcommand{\ReachGainMax}{17}% per-draw maximum of that gain
+\newcommand{\DrawPairMin}{76}\newcommand{\DrawPairMax}{82}% realized draws, paired tail
+\newcommand{\DrawImageMin}{62}\newcommand{\DrawImageMax}{69}% realized draws, image tail
+\newcommand{\DrawMarkMin}{22}\newcommand{\DrawMarkMax}{27}% realized draws, mark stratification (base)
+\newcommand{\ReachImageUnc}{76.1}% ablation: image uncertainty without marks
+\newcommand{\ReachMarksOnly}{69.7}% ablation: marks only
+\newcommand{\AblGain}{3.3}% complete policy minus image uncertainty [omissions]
+\newcommand{\AblGainPts}{3.6}% the same [points]
+\newcommand{\AblGainCI}{[1.3, 5.9]}
+\newcommand{\UnmarkedPair}{27.4}% unmarked omissions reached: paired tail
+\newcommand{\UnmarkedImageUnc}{27.8}% image uncertainty alone
+\newcommand{\UnmarkedImage}{22.6}% image tail
+\newcommand{\UnmarkedMark}{0.4}% mark stratification, half budget
+\newcommand{\UnmarkedMarkBase}{0.9}% mark stratification, base budget
+%
+% --- Effect of the representation (Sec. 4.3) ---
+\newcommand{\OriginalLearned}{74}% test targets recovered, 3D features, full reference
+\newcommand{\OriginalDescriptor}{47}% the same, hand-crafted descriptors
+\newcommand{\RepGain}{9.8}% paired gain [points]
+\newcommand{\RepGainCI}{[3.6, 16.6]}
+\newcommand{\RepAlertsDesc}{12}% negative-patient alerts, descriptors
+\newcommand{\RepAlertsLearned}{2}% negative-patient alerts, 3D features
+\newcommand{\RepWinDesc}{33.6}% covered targets winning their scan, descriptors [%]
+\newcommand{\RepWinLearned}{67.9}% the same, 3D features [%]
+%
+% --- Main results (Sec. 4.4, Tab. 1) ---
+\newcommand{\AuditSave}{50.3}% fewer audits than base-budget mark IPW [%]
+\newcommand{\PairPrimary}{3.2}% omission recall, selected method [%]
+\newcommand{\IpwPrimary}{7.1}% omission recall, mark IPW [%]
+\newcommand{\AllPair}{23.1}% all-target recall, selected method [%]
+\newcommand{\AllIpw}{20.1}% all-target recall, mark IPW [%]
+\newcommand{\AllGain}{3.0}% paired gain in all-target recall [points]
+\newcommand{\AllGainCI}{[1.3, 4.9]}
+\newcommand{\AlertPair}{2.5}% alert rate, selected method [%]
+\newcommand{\AlertIpw}{4.3}% alert rate, mark IPW [%]
+\newcommand{\FPPair}{0.15}% FP/scan, selected method
+\newcommand{\FPIpw}{0.16}% FP/scan, mark IPW
+\newcommand{\PairRelativeP}{-4.0}% omission gap to mark IPW, C/D pool [points]
+\newcommand{\PairRelativePCI}{[$-7.0$, $-1.4$]}
+\newcommand{\MatchedDiff}{-3.6}% the same gap at matched alert rates [points]
+\newcommand{\MatchedDiffCI}{[$-7.0$, $-0.9$]}
+\newcommand{\JointLo}{-14.3}% joint calibration resampling, central range: lower [points]
+\newcommand{\JointHi}{7.1}% upper [points]
+\newcommand{\OmitFirst}{9.5}% first read: omission recall [%]
+\newcommand{\AllFirst}{29.3}% first read: all-target recall [%]
+\newcommand{\OmitMarkDisc}{7.5}% omission recall, mark disc. (half) [%]
+\newcommand{\OmitUniformDisc}{7.9}% omission recall, uniform disc. (half) [%]
+\newcommand{\OmitImageDisc}{4.8}% omission recall, image-tail disc. (half) [%]
+\newcommand{\FirstLeadAlert}{3}% first read leads below this alert rate [%]
+%
+% --- Missed omissions (Sec. 4.5) ---
+\newcommand{\WinOmit}{16}% test omissions winning their scan, anchor draw
+\newcommand{\MissedOmit}{41}% missed test omissions
+\newcommand{\LoseOmit}{26}% missed and outranked within their scan
+\newcommand{\WinMissed}{15}% missed although winning their scan
+\newcommand{\WinGap}{2.22}% their median distance below the threshold [logits]
+%
+% --- Effect of the calibration reference (Sec. 5, Figs. 4-5, Tab. 2) ---
+\newcommand{\NShownMaxima}{15}% maxima shown in Fig. 4a
+\newcommand{\PairCutoffP}{1.524}% threshold, pool P [logit]
+\newcommand{\PairCutoffU}{0.630}% threshold, pool U [logit]
+\newcommand{\PairRank}{55}% rank of the new threshold in pool P
+\newcommand{\PairDrop}{7}% threshold drop [ranks]
+\newcommand{\PairRobustMedian}{0}% random removal: median drop [ranks]
+\newcommand{\PairControlHi}{4}% random removal: 95% upper end [ranks]
+\newcommand{\RandomBandLo}{58}\newcommand{\RandomBandHi}{63}% random-removal band [ranks]
+\newcommand{\PairHitsP}{1}\newcommand{\PairHitsU}{11}% omissions found, P -> U
+\newcommand{\PairAlertsP}{0}\newcommand{\PairAlertsU}{8}% alerts, P -> U
+\newcommand{\NHeadRows}{302}% fitted configurations
+\newcommand{\NHeads}{283}% distinct score vectors
+\newcommand{\LowerHeads}{280}% vectors whose threshold falls
+\newcommand{\MedianDrop}{6}% their median drop [ranks]
+\newcommand{\PastBand}{202}% drops beyond the random-removal range
+\newcommand{\PastBandLearned}{196}\newcommand{\NLearnedVectors}{257}% of which 3D
+\newcommand{\PastBandDesc}{4}\newcommand{\NDescVectors}{24}% of which descriptors
+\newcommand{\GainFirst}{7}% omissions gained: 3D first read
+\newcommand{\GainFull}{9}% 3D full reference
+\newcommand{\GainIpw}{3}% 3D mark IPW
+\newcommand{\PairsMultiView}{11}% omissions, multi-view first read, every pair except C/D
+\newcommand{\PairsFirst}{6}% omissions, 3D first read, every pair except C/D
+\newcommand{\PairChange}{17.1}% change in omission recall, selected method [points]
+\newcommand{\PairChangeCI}{[7.5, 27.9]}
+\newcommand{\PairRelativeU}{3.6}% omission gap to mark IPW, pool U [points]
+\newcommand{\PairRelativeUCI}{[$-1.4$, 9.5]}
+\newcommand{\ReferenceInteraction}{7.5}% shift of that gap [points]
+\newcommand{\ReferenceInteractionCI}{[1.7, 14.4]}
+\newcommand{\MarkDiscRelP}{-4.4}\newcommand{\MarkDiscRelU}{4.4}% gap to mark disc., P -> U [points]
+\newcommand{\FirstRelU}{-6.0}% gap to first read, pool U [points]
+\newcommand{\FirstRelUCI}{[$-12.2$, $-1.6$]}
+\newcommand{\RealizedAlertPair}{7.2}% realized alert rate, pool U, paired tail [%]
+\newcommand{\RealizedAlertIpw}{6.1}% realized alert rate, pool U, mark IPW [%]

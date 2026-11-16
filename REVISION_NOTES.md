@@ -232,3 +232,16 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
 - **LLM statement:** `sec/8_llm_statement.tex` now starts with `\clearpage`, so it always begins at the top of page 9, followed by the references.
 - **Layout:** page 8 ends flush in both columns with no gap; nothing else moved (Fig. 1 still on page 2; 10 pages). Nothing was removed.
 - **Note:** page 8 is now exactly full. An edit that adds a line anywhere in Secs. 5–6 will push the last line of Sec. 6 onto page 9; shorten by the same amount.
+
+## Numbers as variables (2026-11-16)
+- **Request:** "replace the hard coded numbers with variables and then have one paragraph stating those numbers".
+- **One block:** `numbers.tex` (repo root) defines every number stated in the main paper with `\newcommand`, each with a short comment on its meaning and units. The groups follow the paper: data and cohort; representations and protocol; audit-design constants (Eqs. 1–3); alert threshold; reach; representation; main results; missed omissions; calibration reference. `main.tex` loads it right after the preamble (`\input{numbers}`).
+- **Replaced:** 94 hard-coded numbers in the abstract, introduction, method (including the constants inside Eqs. 1–3 and Algorithm 1), experiments, Sec. 5, the discussion, all figure and table captions, and the Tab. 1 cells that the text quotes (first read, mark IPW, mark/uniform/image-tail disc. omission recall, and the selected method's row). A value now changes everywhere from one line.
+- **Replaced file:** `tables/values.tex`, the earlier partial list (44 macros, loaded from `preamble.tex`), was merged into `numbers.tex` and deleted. Its six unused macros were dropped: `\MoreHeads` 251, `\TopRemoved` 4, `\IwahitsP` 3, `\IwahitsU` 6, `\FirstHitsP` 4, `\FirstHitsU` 11 (recoverable from git).
+- **Left as literals:**
+  - mathematical structure ($Y_i=0/1$, $m_i\in\{0,1,2\}$, $r_i=1$, $n+1$, $1-\alpha$, $b=1$);
+  - table spacing lengths;
+  - table cells that the text does not quote (rest of Tab. 1, all of Tab. 2);
+  - spelled-out counts ("six matched draws", "four readers");
+  - the supplement (`sec/X_suppl.tex`), which is not in the current build.
+- **Check:** the PDF text (`pdftotext`) and every page image are identical to the build before the change. With the supplement enabled, the document still builds (18 pages) without errors.
