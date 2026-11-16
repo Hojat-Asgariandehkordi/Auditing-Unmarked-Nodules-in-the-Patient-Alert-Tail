@@ -96,7 +96,7 @@ Goal: every section should read as a CVPR paper, not as a generated report or an
 1. **Primary endpoint framing.** The abstract and intro now lead with the failed non-inferiority result and the reference effect that explains its fragility. Agree as a group that this is the framing you want.
 2. **Confirm the recovered values** listed above against the analysis output.
 3. **Verify the 6 new references** at the end of `references.bib`.
-4. **LLM statement.** Codex is credited with "experimental design", and a sentence about Claude was added. Check both against the CVPR 2027 policy.
+4. **LLM statement.** Replaced on 2026-11-15 with the authors' wording (copy-editing, readability, visualization boilerplate code, preliminary literature discovery). Earlier versions also credited Codex with experimental design, analysis code and drafting, and Claude with figure redrawing. Confirm the new wording covers all actual use under the CVPR 2027 policy.
 5. **Anonymity.** This GitHub repo is public under a named account and has the paper's exact title. Consider making it private during review.
 6. **Extended draft:** moved to `archive/extended-draft/`. Delete it if no longer needed.
 7. **Optional experiments:**
@@ -170,3 +170,7 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
 - **Hyperlinks:** supplement sections got unique link anchors (`\theHsection`), so "Sec. A" no longer jumps to main Section 1. The 8 duplicate page anchors that remain come from the kit's page reset and are harmless.
 - **Result:** 18 pages (1–8 content, 9–10 LLM statement and references, 11–18 supplement). No undefined references, no "??", fonts unchanged, empty PDF metadata.
 - **Before submitting:** split pages 11–18 off as the supplementary file, as the kit warns.
+
+## LLM statement (2026-11-15, late)
+- `sec/8_llm_statement.tex` now holds the authors' statement verbatim. It starts page 9 as before; layout is unchanged.
+- The BioRender credit is no longer in the statement (BioRender is not an LLM). It remains in the Fig. 1 caption ("Schematic created in BioRender, labels added").
