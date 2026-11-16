@@ -4,8 +4,8 @@
 % places it at the top of page 2.
 \begin{figure*}[t]
 \centering
-% TODO camera-ready: replace "created in BioRender" by BioRender's named citation.
+% TODO camera-ready: replace "Icons created in BioRender" by BioRender's named citation.
 \includegraphics[width=\textwidth]{teaser}
-\caption{Overview. (a)~Weak reads and a frozen pilot detector set an audit probability $\pi_i$ for every training candidate; audited labels are corrected (Eq.~\ref{eq:augmentation}) to train a head $g$ on a frozen 3D encoder. The alert threshold $T$ is set on negative calibration patients; excluding patients with an official consensus nodule (purple) lowers it, and a missed test omission is found. Schematic created in BioRender, labels added. (b)~At an equal expected budget, mark-stratified review spends most audits on the hundreds of unremarkable candidates per scan, so an omitted nodule (thick ring) is rarely re-read; disc areas are audit probabilities from Eqs.~(\ref{eq:leverage})--(\ref{eq:allocation}) on a synthetic roster. (c)~Real maxima of the selected detector: excluding official positives lowers the threshold from \PairCutoffP{} to \PairCutoffU{} with all scores unchanged (CT crops 28\,mm wide).}
+\caption{Overview. (a)~Weak reads and a frozen pilot detector set an audit probability $\pi_i$ for every training candidate; audited labels are corrected (Eq.~\ref{eq:augmentation}) to train a head $g$ on a frozen 3D encoder. The alert threshold $T$ is set on negative calibration patients; excluding patients with an official consensus nodule (purple) lowers it, and a missed test omission is found. Icons created in BioRender. (b)~At an equal expected budget, mark-stratified review spends most audits on the hundreds of unremarkable candidates per scan, so an omitted nodule (thick ring) is rarely re-read; disc areas are audit probabilities from Eqs.~(\ref{eq:leverage})--(\ref{eq:allocation}) on a synthetic roster. (c)~Real maxima of the selected detector: excluding official positives lowers the threshold from \PairCutoffP{} to \PairCutoffU{} with all scores unchanged (CT crops 28\,mm wide).}
 \label{fig:teaser}
 \end{figure*}
