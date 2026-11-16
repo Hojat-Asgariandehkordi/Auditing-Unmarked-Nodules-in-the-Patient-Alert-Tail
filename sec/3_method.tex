@@ -16,30 +16,30 @@ An \emph{audit} reveals the label $Y_i$ of one training candidate. We assign eve
 \paragraph{Alert leverage.}
 A candidate can only affect a patient alert if it can become the highest score in its scan or exceed the threshold. We therefore freeze a pilot detector, trained on development data with the marks of reader A, which provides a score $s_i$, a low-alert threshold $t_0$ and the rank $r_i$ of each candidate within its scan, with $r_i=1$ for the highest-scoring one. The leverage of candidate $i$ is
 \begin{equation}
- h_i=\max\!\left\{e^{-(r_i-1)/\RankScale},\ \sigma\!\left(\tfrac{s_i-t_0+\ScoreOffset}{\ScoreWidth}\right)\right\},
+ h_i=\max\!\left\{e^{-(r_i-1)/\tau},\ \sigma\!\left(\tfrac{s_i-t_0+\delta}{\omega}\right)\right\},
  \label{eq:leverage}
 \end{equation}
-where $\sigma$ is the logistic function. The first term equals one for the top candidate of each scan and halves about every four ranks; the second approaches one as the score nears the threshold, rising from one logit below $t_0$ with a width set by $\ScoreWidth$. For instance, a fourth-ranked candidate scoring one logit below $t_0$ obtains $h_i=\max\{\ExLevRank,\ExLevScore\}=\ExLevRank$, whereas the \ExFarRank{}th candidate has leverage close to zero only if its score is also well below the pilot threshold.
+where $\sigma$ is the logistic function. The first term equals one for the top candidate of each scan and halves every $\tau\ln 2$ ranks; the second equals one half at $\delta$ logits below $t_0$ and approaches one as the score nears the threshold, with width $\omega$. With the constants given below, a fourth-ranked candidate scoring one logit below $t_0$ obtains $h_i=\max\{\ExLevRank,\ExLevScore\}=\ExLevRank$, whereas the \ExFarRank{}th candidate has leverage close to zero only if its score is also well below the pilot threshold.
 
 \paragraph{Reader disagreement.}
-Let $m_i\in\{0,1,2\}$ count the weak marks on candidate $i$, and let $p_i$ be the out-of-fold prediction of an image model trained to predict whether A or B marked the location. We define a working probability that the candidate is a target,
+Let $m_i\in\{0,1,2\}$ count the weak marks on candidate $i$, and let $p_i$ be the out-of-fold prediction of an image model trained to predict whether A or B marked the location. We define a working probability that the candidate is a target and its Bernoulli variance,
 \begin{equation}
- u_i=\begin{cases}\WpZeroSlope\,p_i & m_i=0,\\ \WpOneBase+\WpOneSlope\,p_i & m_i=1,\\ \WpTwoBase+\WpTwoSlope\,p_i & m_i=2,\end{cases}
+ u_i=\beta_{m_i}+\gamma_{m_i}\,p_i,\qquad v_i=\max\{u_i(1-u_i),\,\varepsilon_v\},
  \label{eq:working}
 \end{equation}
-together with its Bernoulli variance $v_i=\max\{u_i(1-u_i),\,\VarFloor\}$. The coefficients, a fixed design heuristic chosen before any reference label was revealed, render two concordant marks nearly certain (small $v_i$) and a single mark highly uncertain ($v_i$ near its maximum of \VarMax{}); the floor of \VarFloor{} keeps clear negatives from being excluded entirely.
+with intercept $\beta_m$ and slope $\gamma_m$ for $m$ marks. The coefficients make two concordant marks nearly certain (small $v_i$) and a single mark highly uncertain ($v_i$ near its maximum of \VarMax{}), and $\varepsilon_v$ keeps clear negatives from being excluded.
 
 \paragraph{Allocation.}
-For an expected budget $\mathcal B=\sum_i\pi_i$, we choose the probabilities that minimize $\sum_i \bar h_i^2 v_i\,(1/\pi_i-1)$ with $\bar h_i=\max(h_i,\LevFloor)$. This objective is a leverage-weighted surrogate for the variance of an inverse-probability label correction, so that audits are spent where both leverage and uncertainty are high. Setting the derivative equal to a common Lagrange multiplier yields the square-root rule
+For an expected budget $\mathcal B=\sum_i\pi_i$, we choose the probabilities that minimize $\sum_i \bar h_i^2 v_i\,(1/\pi_i-1)$ with $\bar h_i=\max(h_i,\varepsilon_h)$. This objective is a leverage-weighted surrogate for the variance of an inverse-probability label correction, so that audits are spent where both leverage and uncertainty are high. Setting the derivative equal to a common Lagrange multiplier yields the square-root rule
 \begin{equation}
- \pi_i=\operatorname{clip}\!\left(c\,\bar h_i\sqrt{v_i},\ \ProbFloor b,\ \ProbCap\right),
+ \pi_i=\operatorname{clip}\!\left(c\,\bar h_i\sqrt{v_i},\ \pi_{\min}b,\ \pi_{\max}\right),
  \qquad \textstyle\sum_i\pi_i=\mathcal B,
  \label{eq:allocation}
 \end{equation}
-in which the constant $c$ is found by bisection, $b\in\{\HalfBudget,1\}$ denotes the half or base budget, and the floor $\ProbFloor b$ guarantees every candidate a chance of review.
+in which the constant $c$ is found by bisection, $b\in\{\HalfBudget,1\}$ denotes the half or base budget, and the floor $\pi_{\min}b$ guarantees every candidate a chance of review.
 
 \paragraph{Budget-matched controls.}
-\emph{Image-tail} sampling applies Eq.~\eqref{eq:allocation} with a constant $v_i$ and thus ranks candidates without using the marks. \emph{Mark stratification}, the conventional design, sets $\pi_i=(\MarkPiZero,\MarkPiOne,\MarkPiTwo)\,b$ for $m_i=0,1,2$, and its expected count defines the budget $\mathcal B$ shared by all policies. \emph{Uniform} sampling sets $\pi_i=\mathcal B/N$ for $N$ candidates. All policies share the random numbers of six matched draws.
+\emph{Image-tail} sampling applies Eq.~\eqref{eq:allocation} with a constant $v_i$ and thus ranks candidates without using the marks. \emph{Mark stratification}, the conventional design, sets $\pi_i=\rho_{m_i}b$, and its expected count defines the budget $\mathcal B$ shared by all policies. \emph{Uniform} sampling sets $\pi_i=\mathcal B/N$ for $N$ candidates. All policies share the random numbers of six matched draws.
 
 \paragraph{Reach.}
 Since several candidates may cover the same target, we count distinct targets. Denoting by $\mathcal I_j$ the candidates on target $j$, the probability that at least one of them is audited is
@@ -49,14 +49,16 @@ Since several candidates may cover the same target, we count distinct targets. D
 \end{equation}
 with $a_j=0$ when $\mathcal I_j$ is empty. Summing $a_j$ over the omissions gives the expected number of omissions reached.
 
+\paragraph{Design constants.}
+We set $\tau=\RankScale$, $\delta=\ScoreOffset$ and $\omega=\ScoreWidth$ in Eq.~\eqref{eq:leverage}; $(\beta_0,\beta_1,\beta_2)=(\WpZeroBase,\WpOneBase,\WpTwoBase)$, $(\gamma_0,\gamma_1,\gamma_2)=(\WpZeroSlope,\WpOneSlope,\WpTwoSlope)$ and $\varepsilon_v=\VarFloor$ in Eq.~\eqref{eq:working}; $\varepsilon_h=\LevFloor$, $\pi_{\min}=\ProbFloor$ and $\pi_{\max}=\ProbCap$ in Eq.~\eqref{eq:allocation}; and $(\rho_0,\rho_1,\rho_2)=(\MarkPiZero,\MarkPiOne,\MarkPiTwo)$. All are heuristic and were fixed before any reference label was revealed.
+
 \begin{algorithm}[t]
 \caption{Paired-tail audit and score-fixed reference replay}
 \label{alg:audit}
 \small
 \begin{algorithmic}[1]
 \Require training roster with pilot scores $s_i$, ranks $r_i$, mark counts $m_i$, image predictions $p_i$; budget $\mathcal B$
-\State $h_i\gets$ Eq.~\eqref{eq:leverage}; \ $u_i\gets$ Eq.~\eqref{eq:working}
-\State $v_i\gets\max\{u_i(1-u_i),\,\VarFloor\}$
+\State $h_i\gets$ Eq.~\eqref{eq:leverage}; \ $u_i,v_i\gets$ Eq.~\eqref{eq:working}
 \State bisect $c$ so that $\sum_i\pi_i=\mathcal B$, with $\pi_i$ from Eq.~\eqref{eq:allocation}
 \State draw $R_i\sim\mathrm{Bernoulli}(\pi_i)$; reveal $Y_i$ where $R_i=1$
 \State fit $q_i$ out of fold; $z_i\gets q_i+R_i(Y_i-q_i)/\pi_i$
@@ -88,7 +90,7 @@ The score of patient $j$ is the maximum logit over its candidates, $S_j=\max_{i\
  T_\alpha=S_{(k)},\qquad k=\lceil(n+1)(1-\alpha)\rceil ,
  \label{eq:cutoff}
 \end{equation}
-and a patient alerts if any of its candidates scores strictly above $T_\alpha$. If the negative maxima are exchangeable with those of future negative patients, the marginal alert probability is at most $(n+1-k)/(n+1)\le\alpha$~\cite{angelopoulos2023conformal}. In our setting, $n=\PCal$ and $\alpha=\AlphaNom$ give $k=\lceil \KRawP\rceil=\PRank$, so the threshold is the sixth-largest negative maximum and the alert rate is at most $\AlertBoundNumP/\AlertBoundDenP=\AlertBoundP\%$. Below, $\alpha=\AlphaNom$ throughout, and $T_P$, $T_U$ or simply $T$ denote thresholds on a negative pool. A target is \emph{recovered} if any candidate on it exceeds the threshold.
+and a patient alerts if any of its candidates scores strictly above $T_\alpha$. If the negative maxima are exchangeable with those of future negative patients, the marginal alert probability is at most $(n+1-k)/(n+1)\le\alpha$~\cite{angelopoulos2023conformal}. In our setting, $n=\PCal$ and $\alpha=\AlphaNom$ give $k=\lceil \KRawP\rceil=\PRank$, so the threshold is the sixth-largest negative maximum and the alert rate is at most $\AlertBoundNumP/\AlertBoundDenP=\AlertBoundP\%$. Below, $\alpha=\AlphaNom$, and $T_P$, $T_U$ or $T$ denote thresholds on a negative pool. A target is \emph{recovered} if a candidate on it exceeds the threshold.
 
 \subsection{Score-fixed replay of the negative pool}
 \label{sec:replay}

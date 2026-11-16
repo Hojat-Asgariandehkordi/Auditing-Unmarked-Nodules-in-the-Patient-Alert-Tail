@@ -245,3 +245,22 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - spelled-out counts ("six matched draws", "four readers");
   - the supplement (`sec/X_suppl.tex`), which is not in the current build.
 - **Check:** the PDF text (`pdftotext`) and every page image are identical to the build before the change. With the supplement enabled, the document still builds (18 pages) without errors.
+
+## Equations with named constants (2026-11-16)
+- **Request (clarified):** the numbers inside the equations should become symbols, so the equations are easier to read, with one paragraph giving their values.
+- **Eq. 1:** $h_i=\max\{e^{-(r_i-1)/\tau},\ \sigma((s_i-t_0+\delta)/\omega)\}$. The text now explains the symbols: the rank term halves every $\tau\ln 2$ ranks; the score term equals one half at $\delta$ logits below $t_0$, with width $\omega$. The worked example ($h_i=\max\{0.61,0.50\}$) keeps its numbers.
+- **Eq. 2:** the three-case display became one line, $u_i=\beta_{m_i}+\gamma_{m_i}p_i$, $v_i=\max\{u_i(1-u_i),\varepsilon_v\}$, with an intercept and slope per mark count. Algorithm 1 now reads "$u_i,v_i\gets$ Eq. (2)" (one line shorter).
+- **Eq. 3:** $\pi_i=\mathrm{clip}(c\bar h_i\sqrt{v_i},\ \pi_{\min}b,\ \pi_{\max})$ with $\bar h_i=\max(h_i,\varepsilon_h)$.
+- **Mark stratification:** $\pi_i=\rho_{m_i}b$.
+- **New paragraph "Design constants"** (end of Sec. 3.2):
+  > We set τ = 6, δ = 1 and ω = 0.7 in Eq. (1); (β0, β1, β2) = (0, 0.55, 0.92), (γ0, γ1, γ2) = (0.35, 0.35, 0.06) and εv = 0.006 in Eq. (2); εh = 0.002, πmin = 0.005 and πmax = 0.95 in Eq. (3); and (ρ0, ρ1, ρ2) = (0.02, 0.35, 0.20). All are heuristic and were fixed before any reference label was revealed.
+  - The values come from `numbers.tex` (new `\WpZeroBase` = 0; the comments there now name each symbol). They are identical to the previous equations.
+- **Moved:** "a fixed design heuristic chosen before any reference label was revealed" moved from the Reader disagreement paragraph into the new paragraph.
+- **Trimmed to keep 8 pages** (no content removed):
+  - "and its floored Bernoulli variance" → "and its Bernoulli variance" (the floor is in Eq. 2);
+  - "for each mark count m" → "for m marks";
+  - "the floor of 0.006 keeps clear negatives from being excluded entirely" → "ε_v keeps clear negatives from being excluded";
+  - Sec. 3.4: "Below, α = 0.10 throughout, and … or simply T" → "Below, α = 0.10, and … or T"; "if any candidate" → "if a candidate".
+- **Supplement:** the leverage-factorial paragraph and the image-uncertainty control use the same symbols (τ, δ, ω, ε_h, ε_v).
+- **Symbols checked for clashes:** τ, δ, ω, β, γ, ρ and ε were unused in the paper; a_j (reach), b (budget), c (bisection), α (alert rate), σ (logistic) and π (inclusion probability) were avoided.
+- **Layout:** 10 pages. Page 8 ends flush and the LLM statement opens page 9. Pages 5–8 have the same layout as before. With the supplement enabled, the document builds (18 pages) without errors.

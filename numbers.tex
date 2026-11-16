@@ -40,27 +40,28 @@
 \newcommand{\NRandom}{8,192}% random removals
 \newcommand{\CTFovMM}{28}% field of view of the CT examples [mm]
 %
-% --- Audit design constants (Sec. 3.2, Eqs. 1-3) ---
-\newcommand{\RankScale}{6}% rank decay of the leverage
-\newcommand{\ScoreOffset}{1}% score term: offset below t_0 [logits]
-\newcommand{\ScoreWidth}{0.7}% score term: width
+% --- Audit design constants (Sec. 3.2, Eqs. 1-3; stated in the paragraph 'Design constants') ---
+\newcommand{\RankScale}{6}% tau: rank scale of the leverage
+\newcommand{\ScoreOffset}{1}% delta: score term equals 1/2 this far below t_0 [logits]
+\newcommand{\ScoreWidth}{0.7}% omega: width of the score term
 \newcommand{\ExLevRank}{0.61}% worked example: rank term
 \newcommand{\ExLevScore}{0.50}% worked example: score term
 \newcommand{\ExFarRank}{200}% worked example: low-ranked candidate
-\newcommand{\WpZeroSlope}{0.35}% working probability, no mark
-\newcommand{\WpOneBase}{0.55}% working probability, one mark: intercept
-\newcommand{\WpOneSlope}{0.35}% working probability, one mark: slope
-\newcommand{\WpTwoBase}{0.92}% working probability, two marks: intercept
-\newcommand{\WpTwoSlope}{0.06}% working probability, two marks: slope
-\newcommand{\VarFloor}{0.006}% variance floor
+\newcommand{\WpZeroBase}{0}% beta_0: working probability, no mark: intercept
+\newcommand{\WpZeroSlope}{0.35}% gamma_0: working probability, no mark: slope
+\newcommand{\WpOneBase}{0.55}% beta_1: working probability, one mark: intercept
+\newcommand{\WpOneSlope}{0.35}% gamma_1: working probability, one mark: slope
+\newcommand{\WpTwoBase}{0.92}% beta_2: working probability, two marks: intercept
+\newcommand{\WpTwoSlope}{0.06}% gamma_2: working probability, two marks: slope
+\newcommand{\VarFloor}{0.006}% epsilon_v: variance floor
 \newcommand{\VarMax}{0.25}% maximum Bernoulli variance
-\newcommand{\LevFloor}{0.002}% leverage floor
-\newcommand{\ProbFloor}{0.005}% inclusion-probability floor (times b)
-\newcommand{\ProbCap}{0.95}% inclusion-probability cap
+\newcommand{\LevFloor}{0.002}% epsilon_h: leverage floor
+\newcommand{\ProbFloor}{0.005}% pi_min: inclusion-probability floor (times b)
+\newcommand{\ProbCap}{0.95}% pi_max: inclusion-probability cap
 \newcommand{\HalfBudget}{0.5}% half-budget factor b
-\newcommand{\MarkPiZero}{0.02}% mark stratification, no mark (times b)
-\newcommand{\MarkPiOne}{0.35}% mark stratification, one mark (times b)
-\newcommand{\MarkPiTwo}{0.20}% mark stratification, two marks (times b)
+\newcommand{\MarkPiZero}{0.02}% rho_0: mark stratification, no mark (times b)
+\newcommand{\MarkPiOne}{0.35}% rho_1: mark stratification, one mark (times b)
+\newcommand{\MarkPiTwo}{0.20}% rho_2: mark stratification, two marks (times b)
 \newcommand{\MarksOnlyP}{0.5}% constant p_i of the marks-only ablation
 %
 % --- Alert threshold (Secs. 3.4-3.5) ---
