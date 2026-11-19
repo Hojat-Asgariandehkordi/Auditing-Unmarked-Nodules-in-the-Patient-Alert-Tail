@@ -327,7 +327,7 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - **E, Alert-rate bound:** an exchangeability rank proof of (n+1−k)/(n+1) ≤ α and why the bound refers to the calibration population, which links it to the replay.
   - **E, Masking disputed candidates:** at the original threshold, masking removes both negative alerts and keeps the one recovered omission; after recalibration, 12 of 42 omissions are recovered with 5 alerts among 105. From the authors' extended draft (`archive/extended-draft/experiments.tex`); please confirm.
 - **Moved within sections:** "Uncertainty" in Sec. E now follows "Size-matched random removal". Nothing was removed.
-- **Result:** `supplement.pdf`, 9 pages: 8 pages of content, then the references on page 9. No undefined references, no external links, empty PDF metadata. Fonts: Times (Nimbus/TeX Gyre Termes), STIX and CM math, and the kit's Helvetica ruler.
+- **Result:** `supplement.pdf`, 9 pages (Sec. F and the references on page 9). No undefined references, no external links, empty PDF metadata. Fonts: Times (Nimbus/TeX Gyre Termes), STIX and CM math, and the kit's Helvetica ruler.
   - Clean builds: paper alone 10 pages (text identical), combined 19 pages with no stale stored numbers, supplement alone 9 pages.
 - **Open:**
   - confirm η_i = 1 + 9h_i and the masking numbers;
