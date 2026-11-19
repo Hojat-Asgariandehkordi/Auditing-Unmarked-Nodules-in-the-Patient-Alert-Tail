@@ -322,7 +322,7 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - **C, Allocation rule:** a short proof that Eq. (3) solves the box-constrained convex problem (Lagrangian per term, clip, monotone bisection). It replaces the one-sentence version in "Weak evidence".
   - **C, Unbiasedness:** adds E[z_i] = Y_i, Var(z_i), and the affine logistic loss. It defines the **tail-weighted objective** as loss weight **η_i = 1 + 9h_i**, from the authors' extended draft (`archive/extended-draft/design.tex`); please confirm. The loss weights were renamed from a_i to η_i, because a_j is the reach in the paper.
   - **D, Supervision and representation:** a short paragraph that introduces Tab. 4 and links Tab. 5 and Fig. 1.
-  - **D, Confidence intervals:** "jointly resampling calibration patients and audit draws gives −14.3 to +7.1 points" (`\JointLo`/`\JointHi`; the same values are in `scripts/recovered.json`, variability, both_resampled). The paper cited Supp. Sec. D for this range, but no sentence there stated it.
+  - **D, Confidence intervals:** "jointly resampling calibration patients and audit draws gives −14.3 to +7.1 points" (`\JointLo`/`\JointHi`; the same values are in `scripts/recovered.json`, variability, both_resampled). Correction: Sec. D already stated this range, in "Per-target changes" (the earlier search missed it because it is typeset as math). The polish pass below merges the two sentences.
   - **D, Audit workload:** 3,940 (652 positive) vs 7,933 (169 positive) audited candidates; both designs open almost all 445 patients, so the 50.3% saving is in candidate decisions, not reading time; the cost of the second read, pilot and review was not measured (Tab. costs; extended draft).
   - **E, Alert-rate bound:** an exchangeability rank proof of (n+1−k)/(n+1) ≤ α and why the bound refers to the calibration population, which links it to the replay.
   - **E, Masking disputed candidates:** at the original threshold, masking removes both negative alerts and keeps the one recovered omission; after recalibration, 12 of 42 omissions are recovered with 5 alerts among 105. From the authors' extended draft (`archive/extended-draft/experiments.tex`); please confirm.
@@ -334,3 +334,23 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - confirm that the submitted paper equals GitHub `afb8898`; if it was edited in Overleaf afterwards, push it so the cross-references can be rechecked;
   - check on OpenReview whether CVPR 2027 again requires a compute reporting form with the supplement (CVPR 2026 did);
   - code upload is optional, and only experiment code would help, not the figure scripts.
+
+## Supplement polish (2026-11-19, later)
+- **Request:** "Just polish it… We are not allowed to change the main at all." No main-paper file was touched: the paper's PDF text is identical, and section letters A–F and every stored cross-reference are unchanged (no stale-number warnings in the combined build).
+- **Edited files:** `sec/X_suppl.tex`, `tables/supplement_results.tex`, `tables/costs.tex` and `tables/aux.tex`, all used only by the supplement.
+- **Language and terms:**
+  - the joint-resampling sentence appeared twice; it is now kept once in "Confidence intervals", with the detail "six draws by 300 resamples" and "test patients held fixed" moved from "Per-target changes";
+  - "arm(s)" → "variant(s)" in "Leverage terms", matching the earlier style pass;
+  - "difference to" → "difference from"; "every supervision" → "every training method";
+  - "in the case of LargeCAD" → "for one of the original systems (LargeCAD)"; a comma added after "For each released contour";
+  - the power-tuned multipliers are now labelled "for the three folds";
+  - Sec. E names the pools: "C/D pool $P$", "augmented pool $U$".
+- **Removed:** "The figures show crops of the released images only." (Data use). The supplement's figures are plots, not CT crops.
+- **Math:** the allocation problem and the power-tuning criterion are now displayed equations (the inline sums broke the lines). "Reach and gradient variance" refers to Eq. (4) instead of restating the product.
+- **Tables:**
+  - the notation table has one line per row, and the β and γ rows are split;
+  - workload table headers: "Lesions" → "Targets" and "Exp. dbl. unmarked" → "Exp. unmarked", both defined in the caption;
+  - the auxiliary-error caption defines the mark codes (00/01/10/11), N and Ref.; 224631 → 224,631;
+  - the reference-effects caption defines "C/D" (pool P) and "+ official" (pool U).
+- **Layout:** the wide figure and table of Sec. D (variability, workload) are now defined early, so they share page 6. This removed a one-third-page empty band at the bottom of page 6. All pages are full except the last; 9 pages.
+- **Checks:** clean builds of the paper alone (10 pages, text identical), combined (19 pages) and supplement alone (9 pages): 0 errors, 0 undefined, 0 overfull, no "??", no external links, empty metadata.

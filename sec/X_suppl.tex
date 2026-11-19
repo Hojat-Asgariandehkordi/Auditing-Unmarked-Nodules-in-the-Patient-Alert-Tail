@@ -15,30 +15,31 @@ This supplement accompanies the main paper. It details the dataset and reference
 \begin{table}[t]
 \centering\small
 \setlength{\tabcolsep}{4pt}
-\caption{Notation of the main paper. Constants are fixed design choices (main paper, Sec.~\mainref{sec:audit}{3.2}); $b$ multiplies the probability floor and the mark-stratified probabilities.}
+\caption{Notation of the main paper. The constants below the rule are fixed design choices (main paper, Sec.~\mainref{sec:audit}{3.2}).}
 \label{tab:notation}
-\begin{tabular}{@{}lp{0.70\columnwidth}@{}}
+\begin{tabular}{@{}ll@{}}
 \toprule
 Symbol & Meaning \\
 \midrule
-$X_i$, $Y_i$ & image features and reference label of candidate $i$ \\
-$m_i$, $p_i$ & weak marks (0--2) and out-of-fold image prediction of a weak mark \\
+$X_i$, $Y_i$ & features and reference label of candidate $i$ \\
+$m_i$, $p_i$ & weak-mark count, image prediction of a mark \\
 $s_i$, $r_i$, $t_0$ & pilot score, within-scan rank, pilot threshold \\
-$h_i$, $\bar h_i$ & alert leverage, Eq.~\maineqref{eq:leverage}{1}, and its floored value \\
+$h_i$, $\bar h_i$ & alert leverage, Eq.~\maineqref{eq:leverage}{1}, floored leverage \\
 $u_i$, $v_i$ & working probability and variance, Eq.~\maineqref{eq:working}{2} \\
-$\pi_i$, $R_i$ & inclusion probability, Eq.~\maineqref{eq:allocation}{3}, and audit indicator \\
-$b$, $\mathcal B$ & budget factor (half \HalfBudget, base 1) and expected budget \\
-$a_j$, $\mathcal I_j$ & reach of target $j$, Eq.~\maineqref{eq:reach}{4}, and its candidates \\
-$q_i$, $z_i$ & auxiliary prediction and corrected target, Eq.~\maineqref{eq:augmentation}{5} \\
-$g$, $S_j$ & linear head and patient score (maximum logit) \\
-$\alpha$, $k$, $T$ & nominal alert rate, order statistic, threshold, Eq.~\maineqref{eq:cutoff}{6} \\
-$P$, $U$, $E$ & C/D-negative pool, its official-negative subset, $E=P\setminus U$ \\
+$\pi_i$, $R_i$ & inclusion probability, Eq.~\maineqref{eq:allocation}{3}, audit indicator \\
+$b$, $\mathcal B$ & budget factor (\HalfBudget{} or 1), expected budget \\
+$a_j$, $\mathcal I_j$ & reach of target $j$, Eq.~\maineqref{eq:reach}{4}, its candidates \\
+$q_i$, $z_i$ & auxiliary, corrected target, Eq.~\maineqref{eq:augmentation}{5} \\
+$g$, $S_j$ & linear head, patient score (maximum logit) \\
+$\alpha$, $k$, $T$ & alert rate, rank, threshold, Eq.~\maineqref{eq:cutoff}{6} \\
+$P$, $U$, $E$ & C/D-negative pool, official-negative subset, $P\setminus U$ \\
 \midrule
 $\tau$, $\delta$, $\omega$ & leverage constants \RankScale, \ScoreOffset, \ScoreWidth \\
-$\beta_m$, $\gamma_m$ & intercepts (\WpZeroBase, \WpOneBase, \WpTwoBase) and slopes (\WpZeroSlope, \WpOneSlope, \WpTwoSlope) for $m=0,1,2$ \\
+$\beta_m$ & intercepts \WpZeroBase, \WpOneBase, \WpTwoBase{} for $m=0,1,2$ marks \\
+$\gamma_m$ & slopes \WpZeroSlope, \WpOneSlope, \WpTwoSlope{} for $m=0,1,2$ marks \\
 $\varepsilon_v$, $\varepsilon_h$ & variance floor \VarFloor, leverage floor \LevFloor \\
-$\pi_{\min}$, $\pi_{\max}$ & probability floor \ProbFloor{} (times $b$) and cap \ProbCap \\
-$\rho_m$ & mark-stratified probabilities (\MarkPiZero, \MarkPiOne, \MarkPiTwo), times $b$ \\
+$\pi_{\min}$, $\pi_{\max}$ & probability floor \ProbFloor${}\times b$, cap \ProbCap \\
+$\rho_m$ & mark-stratified probabilities \MarkPiZero, \MarkPiOne, \MarkPiTwo{} ($\times b$) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -57,16 +58,16 @@ We indexed all \NScans{} LUNA16 series and verified each MetaImage header and ra
 \end{table}
 
 \paragraph{Candidate roster.}
-The V2 false-positive reduction roster extends the original merged candidate set with the outputs of ETROCAD and M5LCADThreshold0.3~\cite{setio2017,luna16v2}. Its components were developed on several sources, including LIDC-IDRI and, in the case of LargeCAD, the LUNA16 source data, and some complete CAD submissions used LUNA16 cross-validation; the development exposure of individual V2 coordinates is not available. We discard the supplied class column and use identical coordinates for all methods. The upstream proposals therefore condition both target coverage and the negative tail of the score distribution. Note also that the official FROC evaluation uses a different target definition and ignores some non-target marks, whereas all our counts follow the reference defined in the main paper.
+The V2 false-positive reduction roster extends the original merged candidate set with the outputs of ETROCAD and M5LCADThreshold0.3~\cite{setio2017,luna16v2}. Its components were developed on several sources, including LIDC-IDRI and, for one of the original systems (LargeCAD), the LUNA16 source data, and some complete CAD submissions used LUNA16 cross-validation; the development exposure of individual V2 coordinates is not available. We discard the supplied class column and use identical coordinates for all methods. The upstream proposals therefore condition both target coverage and the negative tail of the score distribution. Note also that the official FROC evaluation uses a different target definition and ignores some non-target marks, whereas all our counts follow the reference defined in the main paper.
 
 \paragraph{Target geometry.}
-For each released contour we use the positive-inclusion regions, convert pixel coordinates and slice positions to millimetres, and take the midpoint of the bounding box as the centre of the mark. Its size is the largest axis-aligned in-plane extent across slices. Two sets of marks are matched by a one-to-one assignment that minimizes the normalized distance, subject to a maximum distance of $\max(\MinRadiusMM\,\mathrm{mm},(d_1+d_2)/4)$, while maximizing the number of matches. Each matched C/D pair defines a target whose centre and diameter are the means of the two marks. A candidate is assigned to the closest target within one normalized radius, using the scale $\max(\MinRadiusMM\,\mathrm{mm},d/2)$. The omission status of a target is determined by a separate one-to-one matching against the marks of the first weak reader. The signed spacing and origin in the MetaImage header define the correspondence between voxel and world coordinates. The roles and matching rules are identical in all experiments. After requiring four reading sessions, no weak read is missing in this cohort, although the discriminative auxiliary still encodes availability explicitly.
+For each released contour, we use the positive-inclusion regions, convert pixel coordinates and slice positions to millimetres, and take the midpoint of the bounding box as the centre of the mark. Its size is the largest axis-aligned in-plane extent across slices. Two sets of marks are matched by a one-to-one assignment that minimizes the normalized distance, subject to a maximum distance of $\max(\MinRadiusMM\,\mathrm{mm},(d_1+d_2)/4)$, while maximizing the number of matches. Each matched C/D pair defines a target whose centre and diameter are the means of the two marks. A candidate is assigned to the closest target within one normalized radius, using the scale $\max(\MinRadiusMM\,\mathrm{mm},d/2)$. The omission status of a target is determined by a separate one-to-one matching against the marks of the first weak reader. The signed spacing and origin in the MetaImage header define the correspondence between voxel and world coordinates. The roles and matching rules are identical in all experiments. After requiring four reading sessions, no weak read is missing in this cohort, although the discriminative auxiliary still encodes availability explicitly.
 
 \paragraph{Disputed candidates.}
 We call an unmatched candidate \emph{disputed} if it lies near an isolated contour drawn by only one of the two reference readers. The released LIDC reader records are the result of an unblinded second phase~\cite{armato2011}, so an isolated contour indicates disagreement under our operational reference rather than a confirmed finding, and no independent diagnostic adjudication of these candidates was performed. A separate patient-level check found no official positive nodule in subsets 6--9 that had not been exposed under its definition of exposure. All weights and heads were developed without access to scores on subsets 2 and 6--9, and we therefore describe the evaluation as a locked retrospective analysis.
 
 \paragraph{Data use.}
-All images and annotations come from the public, de-identified LIDC-IDRI and LUNA16 releases~\cite{armato2011,setio2017}. This is a secondary analysis of these releases: it involved no interaction with participants, no new data collection and no consent procedure, and no new ethics review was conducted for this secondary use. The figures show crops of the released images only.
+All images and annotations come from the public, de-identified LIDC-IDRI and LUNA16 releases~\cite{armato2011,setio2017}. This is a secondary analysis of these releases: it involved no interaction with participants, no new data collection and no consent procedure, and no new ethics review was conducted for this secondary use.
 
 \FloatBarrier
 \section{Representations and Optimization}
@@ -94,7 +95,12 @@ Features are standardized on the fitting candidates, and each head is a linear l
 Within each of three folds of training patients, an image-based logistic model fitted on the other folds predicts whether either weak reader marked a candidate, giving the probability $p_i$ used in Eq.~\maineqref{eq:working}{2}. Its coefficients down-weight concordant marks and emphasize disagreement, and they were fixed before any reference label was revealed. Combining the within-scan rank with an absolute threshold in Eq.~\maineqref{eq:leverage}{1} retains candidates that can determine an extreme scan score even when the intensity distributions of different scans vary.
 
 \paragraph{Allocation rule.}
-With $w_i=\bar h_i^2v_i$, the allocation of Sec.~\mainref{sec:audit}{3.2} minimizes the separable convex objective $\sum_i w_i(1/\pi_i-1)$ subject to $\sum_i\pi_i=\mathcal B$ and $\pi_{\min}b\le\pi_i\le\pi_{\max}$. For a multiplier $\mu>0$ of the budget constraint, each term $w_i/\pi_i+\mu\pi_i$ is convex in $\pi_i$ with its stationary point at $\sqrt{w_i/\mu}$, so its minimizer over the box is $\operatorname{clip}(\sqrt{w_i/\mu},\,\pi_{\min}b,\,\pi_{\max})$. Writing $c=\mu^{-1/2}$ and $\sqrt{w_i}=\bar h_i\sqrt{v_i}$ gives Eq.~\maineqref{eq:allocation}{3}. Since $\sum_i\pi_i$ is continuous and nondecreasing in $c$, bisection finds the $c$ that attains the budget whenever $N\pi_{\min}b\le\mathcal B\le N\pi_{\max}$, and by convexity this solution is optimal.
+With $w_i=\bar h_i^2v_i$, the allocation of Sec.~\mainref{sec:audit}{3.2} solves the separable convex problem
+\[
+ \min_{\pi}\ \sum_i w_i\Big(\frac{1}{\pi_i}-1\Big)
+ \quad\text{s.t.}\quad \sum_i\pi_i=\mathcal B,\quad \pi_{\min}b\le\pi_i\le\pi_{\max}.
+\]
+For a multiplier $\mu>0$ of the budget constraint, each term $w_i/\pi_i+\mu\pi_i$ is convex in $\pi_i$ with its stationary point at $\sqrt{w_i/\mu}$, so its minimizer over the box is $\operatorname{clip}(\sqrt{w_i/\mu},\,\pi_{\min}b,\,\pi_{\max})$. Writing $c=\mu^{-1/2}$ and $\sqrt{w_i}=\bar h_i\sqrt{v_i}$ gives Eq.~\maineqref{eq:allocation}{3}. Since the total $\sum_i\pi_i$ is continuous and nondecreasing in $c$, bisection finds the $c$ that attains the budget whenever $N\pi_{\min}b\le\mathcal B\le N\pi_{\max}$, and by convexity this solution is optimal.
 
 \paragraph{Unbiasedness of the training loss.}
 Let $\mathcal F_{-f}$ contain the data available before auditing together with the audit draws of all patient folds other than $f$. Conditional on $\mathcal F_{-f}$ and on the labels $Y$ of the finite pool, the independent draws in fold $f$ satisfy $\Pr(R_i=1)=\pi_i$, while the auxiliary $q_i$ is fixed. The corrected target of Eq.~\maineqref{eq:augmentation}{5} therefore has $\mathbb E_R[z_i]=q_i+\pi_i(Y_i-q_i)/\pi_i=Y_i$ and $\mathrm{Var}_R(z_i)=(1-\pi_i)(Y_i-q_i)^2/\pi_i$. The logistic loss $\ell(z,g)=\log(1+e^{g})-zg$ is affine in $z$. Hence, for any fixed head $g$ and any loss weights $\eta_i$ determined before auditing,
@@ -105,14 +111,17 @@ Let $\mathcal F_{-f}$ contain the data available before auditing together with t
 This covers both the unit-weight objective ($\eta_i=1$) and the tail-weighted objective ($\eta_i=1+9h_i$), which gives additional weight to candidates near the frozen tail and is compared with the unit-weight objective in Tab.~\ref{tab:contrasts}. The property holds for a misspecified auxiliary, and the weighted estimand does not depend on the inclusion probabilities.
 
 \paragraph{Power tuning.}
-Let $\bar X_i$ denote the standardized design vector including the intercept. We scale the auxiliary by a factor $\lambda$ chosen to minimize an estimate of $\sum_i(1-\pi_i)(Y_i-\lambda q_i)^2\|\bar X_i\|^2/\pi_i$. For each outer fold, the auxiliary is predicted on the remaining folds through an inner split, and the criterion is estimated from the audited labels with an additional factor $1/\pi_i$; the minimizer of this quadratic is clipped to $[0,1]$. The held-out fold then uses the scaled prediction of an auxiliary fitted on all other folds. This fixed-fold, scalar variance tuning follows prediction-powered training~\cite{ppssl2025} and uses the same labels and head as the untuned estimator.
+Let $\bar X_i$ denote the standardized design vector including the intercept. We scale the auxiliary by a factor $\lambda$ chosen to minimize an estimate of
+\[
+ \sum_i\frac{1-\pi_i}{\pi_i}\,(Y_i-\lambda q_i)^2\,\|\bar X_i\|^2 .
+\] For each outer fold, the auxiliary is predicted on the remaining folds through an inner split, and the criterion is estimated from the audited labels with an additional factor $1/\pi_i$; the minimizer of this quadratic is clipped to $[0,1]$. The held-out fold then uses the scaled prediction of an auxiliary fitted on all other folds. This fixed-fold, scalar variance tuning follows prediction-powered training~\cite{ppssl2025} and uses the same labels and head as the untuned estimator.
 
 \paragraph{Reach and gradient variance.}
-For a target $j$ with covering candidates $\mathcal I_j$, the probability of being audited is $1-\prod_{i\in\mathcal I_j}(1-\pi_i)$, with an empty product equal to one, and summing over targets or over omissions gives the expected reach. This computation uses the reference labels of the training pool for evaluation only. We additionally record the squared residuals, the extremes of the audited signed residuals and the diagonal design-variance contributions of the corrected label moment. Conditional on the auxiliary fit of a fold, its residual terms are independent under the design; the reported sum of conditional diagonal terms ignores covariances between folds that arise from fitting the auxiliaries on shared labels. We also measure the realized gradient error across draws and the Brier error of each auxiliary by weak-mark pattern (Tab.~\ref{tab:aux}).
+The probability $a_j$ that target $j$ is audited follows Eq.~\maineqref{eq:reach}{4}, with an empty product equal to one, and summing $a_j$ over targets or over omissions gives the expected reach. This computation uses the reference labels of the training pool for evaluation only. We additionally record the squared residuals, the extremes of the audited signed residuals and the diagonal design-variance contributions of the corrected label moment. Conditional on the auxiliary fit of a fold, its residual terms are independent under the design; the reported sum of conditional diagonal terms ignores covariances between folds that arise from fitting the auxiliaries on shared labels. We also measure the realized gradient error across draws and the Brier error of each auxiliary by weak-mark pattern (Tab.~\ref{tab:aux}).
 
 \begin{table}[t]
 \centering\small
-\caption{Auxiliary error by weak-mark pattern. Mean squared residual ($\times 10^3$) of each auxiliary on test candidates at the anchor draw with mark-stratified audits; Ref.\ is the reference-positive rate (\%). Computed for evaluation only.}
+\caption{Auxiliary error by weak-mark pattern. Mean squared residual ($\times 10^3$) of each auxiliary on test candidates at the anchor draw with mark-stratified audits; Marks: weak marks of readers A and B (1: marked); $N$: test candidates; Ref.: reference-positive rate (\%). Computed for evaluation only.}
 \label{tab:aux}
 \input{tables/aux}
 \end{table}
@@ -133,10 +142,10 @@ For a target $j$ with covering candidates $\mathcal I_j$, the probability of bei
 The primary half-budget comparison was selected using subset 4 for calibration and subset 5 for evaluation. On these development subsets, the selected method achieved a six-draw omission recall of 23.3\%, compared with 18.3\% for base-budget mark-stratified IPW, both at a mean alert rate of 8.6\%. nnPU with an audited class prior reached 28.3\% over its three development draws and was retained as a separate baseline. A claim of superiority required gains of 10 points over first-read training and 5 points over the strongest simple audited baseline, positive lower confidence limits, and a positive effect against the audited baseline in at least four of the six draws. A claim of efficiency required a saving of at least 25\% of the audited candidates and lower confidence limits of at least $\NIMargin$ points for both recall measures. Both claims further required a realized negative alert rate of at most 13\%, at most 3 points above the audited baseline, and at most 0.20 additional FP/scan. We report the selected comparison irrespective of its outcome.
 
 \paragraph{Supervision and representation.}
-Table~\ref{tab:observed} reports every supervision with both feature families at the anchor draw, all using the same base-budget mark-stratified audits. The paired effects of the main comparisons and of the auxiliary, weighting and representation choices are in Tab.~\ref{tab:contrasts} and Fig.~\ref{fig:locked}.
+Table~\ref{tab:observed} reports every training method with both feature families at the anchor draw, all using the same base-budget mark-stratified audits. The paired effects of the main comparisons and of the auxiliary, weighting and representation choices are in Tab.~\ref{tab:contrasts} and Fig.~\ref{fig:locked}.
 
 \paragraph{Confidence intervals.}
-Paired intervals resample test patients \NBoot{} times with fixed weights across the six matched audit draws. Intervals for a single draw condition on that draw and on the pooled calibration set. To assess calibration variability, we resample the \PCal{} negative calibration patients 300 times with replacement and recompute each strict threshold, using the same test patients throughout. Resampling the calibration patients jointly with the audit draws gives a central \CILevel\% range of $\JointLo$ to $+\JointHi$ points for the omission effect of the selected method relative to base-budget mark IPW (Fig.~\ref{fig:variation}a). The matched-alert analysis uses the negative patients of subset 2 to obtain a grid of thresholds and those of subset 6 to select the highest attained alert rate not exceeding \AlphaPct\%, preferring the higher threshold in case of ties. This analysis is separate from the pooled conformal guarantee.
+Paired intervals resample test patients \NBoot{} times with fixed weights across the six matched audit draws. Intervals for a single draw condition on that draw and on the pooled calibration set. To assess calibration variability, we resample the \PCal{} negative calibration patients 300 times with replacement and recompute each strict threshold, using the same test patients throughout. Resampling the calibration patients jointly with the audit draws (six draws by 300 resamples), with the test patients held fixed, gives a central \CILevel\% range of $\JointLo$ to $+\JointHi$ points for the omission effect of the selected method relative to base-budget mark IPW (Fig.~\ref{fig:variation}a). The matched-alert analysis uses the negative patients of subset 2 to obtain a grid of thresholds and those of subset 6 to select the highest attained alert rate not exceeding \AlphaPct\%, preferring the higher threshold in case of ties. This analysis is separate from the pooled conformal guarantee.
 
 \begin{figure*}[t]
 \centering
@@ -152,6 +161,20 @@ Paired intervals resample test patients \NBoot{} times with fixed weights across
 \input{tables/contrasts}
 \end{table*}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{variability}
+\caption{Audit, calibration and test-patient variation answer different questions. Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and thresholds fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central \CILevel\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients.}
+\label{fig:variation}
+\end{figure*}
+
+\begin{table*}[t]
+\centering\small
+\caption{Audit allocation and workload, averaged over the matched draws. Candidates: audited candidates; Pos.\ cand.: audited reference-positive candidates; Targets and Omit.: distinct audited targets and omissions; Patients: patients with at least one audit; Exp.\ omit.\ and Exp.\ unmarked: expected reach (Eq.~\maineqref{eq:reach}{4}) over all \NOmitTrain{} training omissions and over the \NOmitUnmarked{} omissions without any weak mark.}
+\label{tab:costs}
+\input{tables/costs}
+\end{table*}
+
 \input{tables/supplement_results}
 
 \begin{table}[t]
@@ -162,25 +185,11 @@ Paired intervals resample test patients \NBoot{} times with fixed weights across
 \input{tables/bookmark}
 \end{table}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{variability}
-\caption{Audit, calibration and test-patient variation answer different questions. Paired tail minus mark IPW for (a)~omission recall and (b)~negative-patient alerts. Dark intervals resample test patients with the fitted heads and thresholds fixed, for the anchor fit and for the six-fit mean. Blue points vary the training audit draw with the calibration pool fixed. Green intervals give the central \CILevel\% of calibration resamples at the anchor, and of calibration and audit resampling combined. All use the same test patients.}
-\label{fig:variation}
-\end{figure*}
-
-\begin{table*}[t]
-\centering\small
-\caption{Audit allocation and workload, averaged over the matched draws. Candidates: audited candidates; Pos.\ cand.: audited reference-positive candidates; Lesions and Omit.: distinct audited targets and omissions; Patients: patients with at least one audit; Exp.: expected reach (Eq.~\maineqref{eq:reach}{4}) over all training omissions and over the \NOmitUnmarked{} omissions without any weak mark.}
-\label{tab:costs}
-\input{tables/costs}
-\end{table*}
-
 \paragraph{Audit workload.}
 At half budget, paired-tail sampling audits 3,940 candidates on average, of which 652 are reference positive, whereas base-budget mark stratification audits 7,933 candidates, of which 169 are positive (Tab.~\ref{tab:costs}). Both policies open almost every one of the \NFit{} training patients, so the \AuditSave\% saving concerns candidate decisions; if opening a scan has a fixed cost, the saving in reading time is smaller. Both designs also reuse the existing second read, and the cost of acquiring it, of running the pilot detector and of reviewing a candidate were not measured.
 
 \paragraph{Sources of the acquisition gain.}
-The acquisition controls of Sec.~\mainref{sec:reach}{4.2} are exploratory: they were evaluated after the locked study, on the saved half-budget allocation of the training roster, whose reference had already been inspected. The image prediction $p_i$ is recovered from the saved working probability $u_i$ by inverting Eq.~\maineqref{eq:working}{2} within each mark count, and replaying the complete policy reproduces the saved inclusion probabilities. All four policies in Tab.~\ref{tab:ablation} share the frozen leverage $\bar h_i$, the square-root rule of Eq.~\maineqref{eq:allocation}{3}, the floor $\pi_{\min}b=0.0025$, the cap \ProbCap{} and the expected budget of 3,950.15 candidates; no label, auxiliary, head or detector is refitted. The image-uncertainty control sets $u_i=p_i$ and $v_i=\max\{p_i(1-p_i),\varepsilon_v\}$, and the marks-only control fixes $p_i=\MarksOnlyP$, giving $u_i=0.175$, 0.725 and 0.95 for zero, one and two marks. Both controls were defined before their reach was computed, and neither is optimized. Reach is exact (Eq.~\maineqref{eq:reach}{4}), so no audit draws are simulated. Intervals resample the \NFit{} training patients \NBoot{} times, sum the reach within patients and divide by the resampled number of omissions. They condition on the fixed scores and allocation probabilities, omit refitting, calibration and design variation, and are not adjusted for multiplicity. Since $p_i$ is an out-of-fold propensity of either weak mark rather than a calibrated probability of a reference target, the image-uncertainty control also changes the probability mapping, and its difference to the complete policy is a practical ablation rather than an identified effect of the marks.
+The acquisition controls of Sec.~\mainref{sec:reach}{4.2} are exploratory: they were evaluated after the locked study, on the saved half-budget allocation of the training roster, whose reference had already been inspected. The image prediction $p_i$ is recovered from the saved working probability $u_i$ by inverting Eq.~\maineqref{eq:working}{2} within each mark count, and replaying the complete policy reproduces the saved inclusion probabilities. All four policies in Tab.~\ref{tab:ablation} share the frozen leverage $\bar h_i$, the square-root rule of Eq.~\maineqref{eq:allocation}{3}, the floor $\pi_{\min}b=0.0025$, the cap \ProbCap{} and the expected budget of 3,950.15 candidates; no label, auxiliary, head or detector is refitted. The image-uncertainty control sets $u_i=p_i$ and $v_i=\max\{p_i(1-p_i),\varepsilon_v\}$, and the marks-only control fixes $p_i=\MarksOnlyP$, giving $u_i=0.175$, 0.725 and 0.95 for zero, one and two marks. Both controls were defined before their reach was computed, and neither is optimized. Reach is exact (Eq.~\maineqref{eq:reach}{4}), so no audit draws are simulated. Intervals resample the \NFit{} training patients \NBoot{} times, sum the reach within patients and divide by the resampled number of omissions. They condition on the fixed scores and allocation probabilities, omit refitting, calibration and design variation, and are not adjusted for multiplicity. Since $p_i$ is an out-of-fold propensity of either weak mark rather than a calibrated probability of a reference target, the image-uncertainty control also changes the probability mapping, and its difference from the complete policy is a practical ablation rather than an identified effect of the marks.
 
 \begin{table}[t]
 \centering\small
@@ -191,7 +200,7 @@ The acquisition controls of Sec.~\mainref{sec:reach}{4.2} are exploratory: they 
 \end{table}
 
 \paragraph{Leverage terms.}
-This post hoc diagnostic holds the fitted model, the paired proxy variance, the 378,371-candidate roster, the probability bounds and the expected budget of 3,950.15 candidate decisions fixed, and varies only the leverage factor of Eq.~\maineqref{eq:leverage}{1}. It covers all \NFit{} training patients, \NTargetTrain{} targets and \NOmitTrain{} omissions, of which \NOmitUnmarked{} carry no weak mark; it was specified before the contrasts were computed, and replaying the full leverage reproduces the original allocation exactly. Rank leverage is $e^{-(r_i-1)/\tau}$, threshold leverage is $\sigma((s_i-t_0+\delta)/\omega)$ with the saved $t_0=1.566$, and full leverage takes their maximum. Every factor is floored at $\varepsilon_h$ and multiplied by $\sqrt{\max\{u_i(1-u_i),\varepsilon_v\}}$, and each arm solves its own multiplier to attain the same expected budget, with probabilities clipped to $[0.0025, \ProbCap]$. Constant leverage keeps the same mark-conditioned variance, so it is neither uniform sampling nor the image-uncertainty control above. In omission reach, full leverage exceeds constant leverage by 79.5 points [74.0, 84.1], the threshold term alone by 15.4 points [9.6, 21.3] and the rank term alone by only $+0.047$ points [$-0.261$, 0.593] (Tab.~\ref{tab:leverage}). The intervals use \NBoot{} paired patient-bootstrap resamples conditional on the fitted scores, threshold and allocation; they are pointwise and unadjusted, and describe reach on known training references, not generalization or detector accuracy. All four arms are reported. Full leverage reaches slightly fewer omissions without any weak mark than the rank term alone (27.39 \vs 27.46); its higher all-target reach (483.98 \vs 476.83) is a distinct endpoint and does not establish an advantage in omission reach. Both arms open nearly every training patient, so the comparison concerns candidate decisions, not proportional savings in reading time.
+This post hoc diagnostic holds the fitted model, the paired proxy variance, the 378,371-candidate roster, the probability bounds and the expected budget of 3,950.15 candidate decisions fixed, and varies only the leverage factor of Eq.~\maineqref{eq:leverage}{1}. It covers all \NFit{} training patients, \NTargetTrain{} targets and \NOmitTrain{} omissions, of which \NOmitUnmarked{} carry no weak mark; it was specified before the contrasts were computed, and replaying the full leverage reproduces the original allocation exactly. Rank leverage is $e^{-(r_i-1)/\tau}$, threshold leverage is $\sigma((s_i-t_0+\delta)/\omega)$ with the saved $t_0=1.566$, and full leverage takes their maximum. Every factor is floored at $\varepsilon_h$ and multiplied by $\sqrt{\max\{u_i(1-u_i),\varepsilon_v\}}$, and each variant solves its own multiplier to attain the same expected budget, with probabilities clipped to $[0.0025, \ProbCap]$. Constant leverage keeps the same mark-conditioned variance, so it is neither uniform sampling nor the image-uncertainty control above. In omission reach, full leverage exceeds constant leverage by 79.5 points [74.0, 84.1], the threshold term alone by 15.4 points [9.6, 21.3] and the rank term alone by only $+0.047$ points [$-0.261$, 0.593] (Tab.~\ref{tab:leverage}). The intervals use \NBoot{} paired patient-bootstrap resamples conditional on the fitted scores, threshold and allocation; they are pointwise and unadjusted, and describe reach on known training references, not generalization or detector accuracy. All four variants are reported. Full leverage reaches slightly fewer omissions without any weak mark than the rank term alone (27.39 \vs 27.46); its higher all-target reach (483.98 \vs 476.83) is a distinct endpoint and does not establish an advantage in omission reach. Both variants open nearly every training patient, so the comparison concerns candidate decisions, not proportional savings in reading time.
 
 \begin{table}[t]
 \centering\small
@@ -209,7 +218,7 @@ This post hoc diagnostic holds the fitted model, the paired proxy variance, the 
 Let $S_{n+1}$ be the maximum of a new negative patient, and suppose that $S_1,\dots,S_{n+1}$ are exchangeable and have no ties. The rank of $S_{n+1}$ among them is then uniform on $\{1,\dots,n+1\}$, and $S_{n+1}>S_{(k)}$ holds exactly when this rank exceeds $k$. Hence $\Pr(S_{n+1}>T_\alpha)=(n+1-k)/(n+1)\le\alpha$ for $k=\lceil(n+1)(1-\alpha)\rceil$, and ties can only lower this probability. The bound is marginal over the calibration sample and the new patient, and it applies to the population of which the calibration negatives are exchangeable draws. A pool $P=U\cup E$ calibrates for the mixture of patients with and without an official consensus nodule, and this choice of population is what the score-fixed replay of Sec.~\mainref{sec:tail}{5} varies.
 
 \paragraph{Negative pools.}
-The C/D pool contains the patients without a concordant C/D contour under our geometry, and the augmented pool additionally requires that the patient has no entry in the official LUNA16 annotation file. For visualization, candidates are matched to official nodules with the same tolerance as for proposals, namely the greater of \MinRadiusMM\,mm and half the official diameter. Patient eligibility, by contrast, depends only on the presence of an official nodule in the scan, whether or not a candidate matches it. Since changing the negative pool leaves the localization targets unchanged, thresholds can be compared without altering the recall denominator, and under both thresholds the alert denominator consists of the \UTest{} test patients that are negative under both definitions.
+The C/D pool $P$ contains the patients without a concordant C/D contour under our geometry, and the augmented pool $U$ additionally requires that the patient has no entry in the official LUNA16 annotation file. For visualization, candidates are matched to official nodules with the same tolerance as for proposals, namely the greater of \MinRadiusMM\,mm and half the official diameter. Patient eligibility, by contrast, depends only on the presence of an official nodule in the scan, whether or not a candidate matches it. Since changing the negative pool leaves the localization targets unchanged, thresholds can be compared without altering the recall denominator, and under both thresholds the alert denominator consists of the \UTest{} test patients that are negative under both definitions.
 
 \begin{table*}[t]
 \centering\small
@@ -220,13 +229,13 @@ The C/D pool contains the patients without a concordant C/D contour under our ge
 
 \begin{table*}[t]
 \centering\small
-\caption{Paired-tail differences under each calibration reference. The six matched fits are averaged within each patient. Both negative pools are evaluated on the same original targets and the \UTest{} common negative test patients. Differences and patient-bootstrap intervals are in percentage points.}
+\caption{Paired-tail differences under each calibration reference. The six matched fits are averaged within each patient. C/D: pool $P$; + official: pool $U$. Both pools are evaluated on the same original targets and the \UTest{} common negative test patients. Differences and patient-bootstrap intervals are in percentage points.}
 \label{tab:alt}
 \input{tables/reference_effects}
 \end{table*}
 
 \paragraph{Coverage of fitted heads and an additional architecture.}
-For every locked fit, we first reproduce the original thresholds and all C/D counts at $\alpha=\AlphaNom$ and then evaluate the augmented pool (Tab.~\ref{tab:families}). To test reference sensitivity in a second learned representation, we additionally use the epoch-16 checkpoint of the 2.5D model from the first development screen. Its input consists of twelve planes centred on the candidate at two physical fields of view, processed by two blocks each of 24, 40 and 64 channels with two intermediate pooling operations; the embedding concatenates the central and global means before a 32-channel projection, and at inference it is averaged over the patch and its in-plane flips. With this checkpoint frozen, we fit first-read and full-reference linear heads on the original fitting set with the common ridge penalty. These fits use the same patients and candidate source as the main experiments, and identical score vectors are merged when counting distinct detectors. Table~\ref{tab:alt} gives the paired-tail differences to each baseline under both pools.
+For every locked fit, we first reproduce the original thresholds and all C/D counts at $\alpha=\AlphaNom$ and then evaluate the augmented pool (Tab.~\ref{tab:families}). To test reference sensitivity in a second learned representation, we additionally use the epoch-16 checkpoint of the 2.5D model from the first development screen. Its input consists of twelve planes centred on the candidate at two physical fields of view, processed by two blocks each of 24, 40 and 64 channels with two intermediate pooling operations; the embedding concatenates the central and global means before a 32-channel projection, and at inference it is averaged over the patch and its in-plane flips. With this checkpoint frozen, we fit first-read and full-reference linear heads on the original fitting set with the common ridge penalty. These fits use the same patients and candidate source as the main experiments, and identical score vectors are merged when counting distinct detectors. Table~\ref{tab:alt} gives the paired-tail differences from each baseline under both pools.
 
 \paragraph{Size-matched random removal.}
 Within each of the two calibration subsets, we draw a random subset of negative patients of the same size as the augmented pool in that subset, and repeat this \NRandom{} times with common random draws across detectors. For each draw, we take the \URank{}th order statistic, as for the augmented pool, and locate the resulting score in the sorted original pool, breaking ties deterministically by roster order. The resulting distribution describes how far the threshold would move if patients were removed uniformly at random within each subset at the same sample size, and the observed displacement is expressed on the same rank scale. As a descriptive tail area, we report the fraction of random displacements that are at least as large as the observed one, with a one-draw correction.
