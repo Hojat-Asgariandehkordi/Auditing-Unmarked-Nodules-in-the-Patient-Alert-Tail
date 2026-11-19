@@ -331,7 +331,7 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - Clean builds: paper alone 10 pages (text identical), combined 19 pages with no stale stored numbers, supplement alone 9 pages.
 - **Open:**
   - confirm η_i = 1 + 9h_i and the masking numbers;
-  - confirm that the submitted paper equals GitHub `afb8898`; if it was edited in Overleaf afterwards, push it so the cross-references can be rechecked;
+  - ~~confirm that the submitted paper equals GitHub `afb8898`~~ — confirmed by the authors (2026-11-19): the paper's referencing is unchanged and the paper may not be changed at all;
   - check on OpenReview whether CVPR 2027 again requires a compute reporting form with the supplement (CVPR 2026 did);
   - code upload is optional, and only experiment code would help, not the figure scripts.
 
