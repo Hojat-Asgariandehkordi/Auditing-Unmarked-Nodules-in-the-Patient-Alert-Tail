@@ -16,10 +16,10 @@ skeleton, and `preamble.tex` is the kit's preamble with this paper's extra packa
 | `main.bib` | Bibliography |
 
 Build: `latexmk -pdf main.tex`, or `./scripts/make_all.sh` to also regenerate figures.
-With `\input{sec/X_suppl}` active: pages 1–8 content, 9–10 LLM statement and references, 11–18 supplement. It is currently commented out (Overleaf edit, 2026-11-16), so `main.tex` builds the 10-page paper alone.
+With `\input{sec/X_suppl}` active: pages 1–8 content, 9–10 LLM statement and references, 11–19 supplement. It is currently commented out (Overleaf edit, 2026-11-16), so `main.tex` builds the 10-page paper alone.
 **Submission (two PDFs):**
 - paper: `main.tex` with `%\input{sec/X_suppl}` commented out (10 pages);
-- supplementary material: `supplement.tex` (8 pages). In Overleaf, set Menu → Main document to `supplement.tex`, recompile and download, then set it back to `main.tex`.
+- supplementary material: `supplement.tex` (9 pages). Supplementary deadline: Nov 23, 2026 AoE. In Overleaf, set Menu → Main document to `supplement.tex`, recompile and download, then set it back to `main.tex`.
 
 Cross-references between the two parts store their value, so neither PDF shows "??":
 - the supplement refers to the main paper (Eqs. 1–4, Sec. 4.2) with `\mainref{label}{number}` / `\maineqref{label}{number}`;

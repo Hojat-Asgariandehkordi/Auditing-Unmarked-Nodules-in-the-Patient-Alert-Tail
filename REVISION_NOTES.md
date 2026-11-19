@@ -304,3 +304,33 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - paper alone: 10 pages, 0 undefined, no "??", every column ends at the same place as before (no line moved), and the LLM statement opens page 9;
   - combined: 18 pages, 0 undefined, no stale warnings;
   - supplement alone: 8 pages, 0 undefined.
+
+## Supplementary material for submission (2026-11-19)
+- **Context:** the main paper was submitted on 2026-11-16 (assumed to be the GitHub version `afb8898`). The supplementary deadline is Nov 23, 2026 AoE. CVPR 2027 sets no format for the supplement, but it must be anonymous and self-contained, with no external links.
+- **Frozen interface with the submitted paper:**
+  - section letters A–F are unchanged, because the paper cites "Supp. Sec. A–E";
+  - every pointer still finds its content (A: matching and cohort; B: architectures; C: tail-weighted objective; D: acquisition replay, factorial, joint resampling, bookmark cap; E: 2.5D checkpoint, per-family breakdown, first-read gap);
+  - the paper's own files are untouched, and its PDF text is identical.
+- **Layout and typography:**
+  - every float stays inside its own section (`\FloatBarrier` before each section and before the references); before, Tables 9–11 of Sec. E were printed after the references;
+  - the supervision table is now one column, placed at the start of Sec. D;
+  - true minus signs replace hyphens in `tables/contrasts.tex` and `tables/reference_effects.tex`, which are supplement-only tables;
+  - numbers shared with the paper now come from `numbers.tex` (cohort counts, bootstrap and random-removal counts, constants), so the two parts cannot disagree.
+- **Added:**
+  - **Tab. 1, Notation:** every symbol of Sec. 3 with the design constants (from `numbers.tex`).
+  - **A, Data use:** a public, de-identified secondary analysis with no participant interaction and no new ethics review (from the authors' extended draft and the paper's last sentence).
+  - **C, Allocation rule:** a short proof that Eq. (3) solves the box-constrained convex problem (Lagrangian per term, clip, monotone bisection). It replaces the one-sentence version in "Weak evidence".
+  - **C, Unbiasedness:** adds E[z_i] = Y_i, Var(z_i), and the affine logistic loss. It defines the **tail-weighted objective** as loss weight **η_i = 1 + 9h_i**, from the authors' extended draft (`archive/extended-draft/design.tex`); please confirm. The loss weights were renamed from a_i to η_i, because a_j is the reach in the paper.
+  - **D, Supervision and representation:** a short paragraph that introduces Tab. 4 and links Tab. 5 and Fig. 1.
+  - **D, Confidence intervals:** "jointly resampling calibration patients and audit draws gives −14.3 to +7.1 points" (`\JointLo`/`\JointHi`; the same values are in `scripts/recovered.json`, variability, both_resampled). The paper cited Supp. Sec. D for this range, but no sentence there stated it.
+  - **D, Audit workload:** 3,940 (652 positive) vs 7,933 (169 positive) audited candidates; both designs open almost all 445 patients, so the 50.3% saving is in candidate decisions, not reading time; the cost of the second read, pilot and review was not measured (Tab. costs; extended draft).
+  - **E, Alert-rate bound:** an exchangeability rank proof of (n+1−k)/(n+1) ≤ α and why the bound refers to the calibration population, which links it to the replay.
+  - **E, Masking disputed candidates:** at the original threshold, masking removes both negative alerts and keeps the one recovered omission; after recalibration, 12 of 42 omissions are recovered with 5 alerts among 105. From the authors' extended draft (`archive/extended-draft/experiments.tex`); please confirm.
+- **Moved within sections:** "Uncertainty" in Sec. E now follows "Size-matched random removal". Nothing was removed.
+- **Result:** `supplement.pdf`, 9 pages: 8 pages of content, then the references on page 9. No undefined references, no external links, empty PDF metadata. Fonts: Times (Nimbus/TeX Gyre Termes), STIX and CM math, and the kit's Helvetica ruler.
+  - Clean builds: paper alone 10 pages (text identical), combined 19 pages with no stale stored numbers, supplement alone 9 pages.
+- **Open:**
+  - confirm η_i = 1 + 9h_i and the masking numbers;
+  - confirm that the submitted paper equals GitHub `afb8898`; if it was edited in Overleaf afterwards, push it so the cross-references can be rechecked;
+  - check on OpenReview whether CVPR 2027 again requires a compute reporting form with the supplement (CVPR 2026 did);
+  - code upload is optional, and only experiment code would help, not the figure scripts.
