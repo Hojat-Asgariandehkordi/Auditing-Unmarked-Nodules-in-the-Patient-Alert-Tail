@@ -354,3 +354,28 @@ Source: `BLUE_REVIEW_33410___marked_revisions___2026_11_15_1.pdf` (Blue's supple
   - the reference-effects caption defines "C/D" (pool P) and "+ official" (pool U).
 - **Layout:** the wide figure and table of Sec. D (variability, workload) are now defined early, so they share page 6. This removed a one-third-page empty band at the bottom of page 6. All pages are full except the last; 9 pages.
 - **Checks:** clean builds of the paper alone (10 pages, text identical), combined (19 pages) and supplement alone (9 pages): 0 errors, 0 undefined, 0 overfull, no "??", no external links, empty metadata.
+
+## Supplement: strict polish of the submitted-day version (2026-11-20)
+- **Rule:** the main paper stays exactly as submitted, so everything it cites in the supplement keeps its number. It cites only section letters: Supp. Sec. A, B, C, D (×4) and E (×3). The polish changes wording and presentation only. Nothing is reordered, removed or renumbered, and the two-column CVPR style is kept.
+- **Restored:** `sec/X_suppl.tex`, `supplement.tex` and the supplement-only tables were restored to the submitted-day version (`afb8898`). This drops the additions of 2026-11-19: the notation table, "Data use", "Allocation rule", the extended unbiasedness paragraph with η_i, "Supervision and representation", "Audit workload", "Alert-rate bound" and "Masking disputed candidates". They remain in git history (commits `5668602`, `37f98ea`) if wanted later.
+- **Wording (all edits):**
+  - "in the case of LargeCAD" → "for one of the original systems (LargeCAD)";
+  - a comma after "For each released contour";
+  - "difference to the complete policy" → "difference from";
+  - "arm"/"arms" → "variant"/"variants" (three times);
+  - the power-tuning criterion is a displayed equation instead of an inline sum that broke across lines;
+  - the square root in "Leverage terms" no longer widens the line spacing (`\smash[t]`).
+- **Captions:**
+  - Table 2 defines Marks, N and Ref.;
+  - Table 6 headers: "Lesions" → "Targets" and "Exp. dbl. unmarked" → "Exp. unmarked", both defined;
+  - Table 10 defines "Cal. pool" (C/D or + official).
+- **Tables:** true minus signs in Tables 5 and 10 (`contrasts`, `reference_effects`); 224631 → 224,631 in Table 2.
+- **Placement (numbers unchanged, verified: Tables 1–11, Figures 1–2 with the same titles):**
+  - Sec. D float definitions moved to the start of Sec. D, in the same order;
+  - Tables 7 and 8 are no longer fixed in-place boxes (which left half-empty columns on pages 5–6); they now sit side by side in one full-width float, one per column, top-aligned;
+  - the Sec. E float definitions moved just before "Leverage terms", in the same order, so Tables 9–11 print at the top of page 7. Before, they were printed after the references on a mostly empty page 8;
+  - `\vfill` before the Sec. E heading: the spare line at the end of Sec. D goes to the column bottom instead of widening a paragraph gap.
+- **Result:** 8 pages, as on the submitted day; every table and figure in numeric order and before the references; no half-empty columns or stretched gaps. Remaining white space: 0.24 in at the end of Sec. D (page 5), 0.39 in under Table 11 (page 7), and the space beside the shorter Table 8 in the pair.
+  - Checked with `/tmp/gaps.py`-style column scans and page renders.
+  - Source check: the prose is identical to the submitted day except the edits listed above.
+- **Checks:** paper alone 10 pages, text identical to the submitted version, main-paper sources unchanged since `afb8898`; combined build 18 pages; supplement alone 8 pages. 0 errors, 0 undefined, 0 overfull, no "??", no external links, empty metadata.
